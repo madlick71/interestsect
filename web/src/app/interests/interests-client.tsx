@@ -16,13 +16,26 @@ type Interest = {
   category_id: string;
   slug: string;
   name_de: string;
+  keywords: string[];
 };
+
+// Suchbare Normalform: kleingeschrieben, Umlaute ausgeschrieben —
+// so findet "kräuter" auch "kraeuter" und "schach" auch "vereinschach"
+function normalize(s: string) {
+  return s
+    .toLowerCase()
+    .replaceAll("ä", "ae")
+    .replaceAll("ö", "oe")
+    .replaceAll("ü", "ue")
+    .replaceAll("ß", "ss");
+}
 
 export default function InterestsClient() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [interests, setInterests] = useState<Interest[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [query, setQuery] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +49,7 @@ export default function InterestsClient() {
         .order("sort_order"),
       supabase
         .from("interests")
-        .select("id, category_id, slug, name_de")
+        .select("id, category_id, slug, name_de, keywords")
         .order("name_de"),
       supabase.from("user_interests").select("interest_id"),
     ]);
@@ -97,8 +110,20 @@ export default function InterestsClient() {
     setTimeout(() => router.push("/matches"), 700);
   }
 
-  const byCategory = (catId: string) =>
-    interests.filter((i) => i.category_id === catId);
+  const q = normalize(query.trim());
+  const matches = (i: Interest) =>
+    !q ||
+    normalize(i.name_de).includes(q) ||
+    normalize(i.slug).includes(q) ||
+    (i.keywords ?? []).some((k) => normalize(k).includes(q));
+
+  const totalHits =
+    q === ""
+      ? interests.length
+      : interests.filter((i) => matches(i)).length;
+
+  const visible = (catId: string) =>
+    interests.filter((i) => i.category_id === catId && matches(i));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
@@ -110,30 +135,55 @@ export default function InterestsClient() {
 
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-red-700">{error}</p>}
 
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Interessen suchen (z. B. schach, kräuter, funk)…"
+        className="mt-6 w-full rounded border border-gray-300 px-4 py-2.5 outline-none focus:border-black"
+        aria-label="Interessen durchsuchen"
+      />
+      {q !== "" && (
+        <p className="mt-2 text-sm text-gray-500">
+          {totalHits} {totalHits === 1 ? "Treffer" : "Treffer"} für „{query.trim()}
+          “
+        </p>
+      )}
+
       <div className="mt-8 space-y-8">
-        {categories.map((cat) => (
-          <section key={cat.id}>
-            <h2 className="font-semibold">{cat.name_de}</h2>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {byCategory(cat.id).map((interest) => {
-                const active = selected.has(interest.id);
-                return (
-                  <button
-                    key={interest.id}
-                    onClick={() => toggle(interest.id)}
-                    className={`rounded-full border px-3 py-1 text-sm transition ${
-                      active
-                        ? "border-black bg-black text-white"
-                        : "border-gray-300 hover:border-gray-500"
-                    }`}
-                  >
-                    {interest.name_de}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        ))}
+        {categories.map((cat) => {
+          const items = visible(cat.id);
+          if (items.length === 0) return null;
+          return (
+            <section key={cat.id}>
+              <h2 className="font-semibold">{cat.name_de}</h2>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {items.map((interest) => {
+                  const active = selected.has(interest.id);
+                  return (
+                    <button
+                      key={interest.id}
+                      onClick={() => toggle(interest.id)}
+                      className={`rounded-full border px-3 py-1 text-sm transition ${
+                        active
+                          ? "border-black bg-black text-white"
+                          : "border-gray-300 hover:border-gray-500"
+                      }`}
+                    >
+                      {interest.name_de}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+        {q !== "" && totalHits === 0 && (
+          <p className="rounded border p-6 text-gray-600">
+            Keine Treffer für „{query.trim()}“ — tippe es anders oder wähle
+            direkt aus den Kategorien.
+          </p>
+        )}
       </div>
 
       <div className="sticky bottom-4 mt-10 flex items-center gap-4 rounded-lg border bg-white p-4 shadow">
