@@ -46,6 +46,7 @@ export default function InterestsClient() {
   // Default: alle Kategorien zugeklappt
   const [openCats, setOpenCats] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -115,8 +116,9 @@ export default function InterestsClient() {
       }
     }
     setInitialSelected(new Set(selected));
-    setSaving(false);
-    // Kurze Pause, dann zur Startseite weiterleiten
+    setRedirecting(true);
+    // Spinner zeigen, dann zur Startseite weiterleiten (saving bleibt
+    // aktiviert, bis die Seite wechselt)
     setTimeout(() => router.push("/home"), 700);
   }
 
@@ -239,10 +241,38 @@ export default function InterestsClient() {
       <div className="sticky bottom-4 mt-10 flex items-center justify-center gap-4 rounded-lg border bg-white p-4 shadow">
         <button
           onClick={handlePrimaryAction}
-          disabled={saving}
-          className="rounded bg-black px-5 py-2 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+          disabled={saving || redirecting}
+          className="flex items-center gap-2 rounded bg-black px-5 py-2 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
         >
-          {saving ? "Speichern…" : dirty ? "Speichern" : "Home"}
+          {(saving || redirecting) && (
+            <svg
+              className="h-4 w-4 animate-spin"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
+              />
+            </svg>
+          )}
+          {saving
+            ? "Speichern…"
+            : redirecting
+              ? "Weiterleiten…"
+              : dirty
+                ? "Speichern"
+                : "Home"}
         </button>
       </div>
     </main>
