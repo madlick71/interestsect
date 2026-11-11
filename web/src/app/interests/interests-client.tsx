@@ -51,26 +51,33 @@ export default function InterestsClient() {
 
   const load = useCallback(async () => {
     const supabase = createClient();
-    const [cats, ints, mine] = await Promise.all([
+    const [cats, mine] = await Promise.all([
       supabase
         .from("interest_categories")
         .select("id, slug, name_de, sort_order")
         .order("sort_order"),
-      supabase
-        .from("interests")
-        .select("id, category_id, slug, name_de, keywords")
-        .order("name_de"),
       supabase.from("user_interests").select("interest_id"),
     ]);
-    if (cats.error || ints.error || mine.error) {
-      setError("Konnte Daten nicht laden. Bist du angemeldet?");
-      return;
+    // Interessen seitenweise laden — die API liefert max. 1000 Zeilen
+    // pro Anfrage, der Katalog ist inzwischen größer
+    const ints: Interest[] = [];
+    for (let from = 0; ; from += 1000) {
+      const page = await supabase
+        .from("interests")
+        .select("id, category_id, slug, name_de, keywords")
+        .order("name_de")
+        .range(from, from + 999);
+      if (page.error || cats.error || mine.error) {
+        setError("Konnte Daten nicht laden. Bist du angemeldet?");
+        return;
+      }
+      ints.push(...(page.data ?? []));
+      if (!page.data || page.data.length < 1000) break;
     }
     setCategories(cats.data ?? []);
-    setInterests(ints.data ?? []);
-    const loaded = new Set((mine.data ?? []).map((r) => r.interest_id));
-    setSelected(loaded);
-    setInitialSelected(loaded);
+    setInterests(ints);
+    setSelected(new Set((mine.data ?? []).map((r) => r.interest_id)));
+    setInitialSelected(new Set((mine.data ?? []).map((r) => r.interest_id)));
   }, []);
 
   useEffect(() => {

@@ -27,19 +27,31 @@ class _InterestsScreenState extends State<InterestsScreen> {
     setState(() => _loading = true);
     try {
       final userId = _client.auth.currentUser?.id;
+      // Interessen seitenweise laden — die API liefert max. 1000 Zeilen
+      // pro Anfrage, der Katalog ist inzwischen größer
+      final interests = <Map<String, dynamic>>[];
+      for (var from = 0;; from += 1000) {
+        final page = await _client
+            .from('interests')
+            .select()
+            .order('name_de')
+            .range(from, from + 999);
+        final rows = List<Map<String, dynamic>>.from(page);
+        interests.addAll(rows);
+        if (rows.length < 1000) break;
+      }
       final results = await Future.wait([
         _client.from('interest_categories').select().order('sort_order'),
-        _client.from('interests').select().order('name_de'),
         if (userId != null)
           _client.from('user_interests').select('interest_id'),
       ]);
       if (!mounted) return;
       setState(() {
         _categories = List.from(results[0]);
-        _interests = List.from(results[1]);
-        if (results.length > 2) {
+        _interests = interests;
+        if (results.length > 1) {
           _selected.addAll(
-            (results[2] as List).map((r) => r['interest_id'] as String),
+            (results[1] as List).map((r) => r['interest_id'] as String),
           );
         }
         _loading = false;
