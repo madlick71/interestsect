@@ -1,0 +1,50 @@
+project_id = "interestsect"
+
+[api]
+enabled = true
+port = 55321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 55322
+shadow_port = 55320
+major_version = 15
+
+[db.pooler]
+enabled = true
+port = 55329
+pool_mode = "transaction"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["io.interestsect.app://auth-callback", "http://localhost:3000/auth/callback"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+
+[studio]
+enabled = true
+port = 55323
+
+[local_smtp]
+enabled = true
+port = 55324
+
+[storage]
+file_size_limit = "50MiB"
+
+[edge_runtime]
+policy = "per_worker"
+
+# Webhook wird von Stripe ohne App-JWT aufgerufen → JWT-Check aus
+[functions.stripe-webhook]
+verify_jwt = false

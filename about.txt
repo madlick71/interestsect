@@ -1,0 +1,13 @@
+Die App soll ein neuartiges Soziales Netzwerk werden, wobei auf folgende Dinge Wert gelegt wird: 
+
+- Der Fokus liegt auf realen physischen Treffen der Person und nicht auf Bildschirmzeit in der App. 
+- Es gibt keine Selbstdarstellung in Form vieler Profilbilder, keine Likes und keinen Newsfeed. 
+- Wichtigster Grund für die Kontaktaufnahme mit einer anderen Person sind gemeinsame Interessen. 
+- Wir brauchen ein umfangreiches Verzeichnis von Interessen und Hobbys, das sehr speziell sein soll.
+- Man kann die App 30 Tage testen. Danach kostet sie 1 € pro Monat.
+- Es gibt keine Werbung.
+
+
+Tech-Stack:
+- Zwei Plattformen: eine Next.js-App im Browser und eine Flutter-App auf mobilen Geräten 
+- Beide greifen auf ein Backend zu, das eine API bereitstellt  
