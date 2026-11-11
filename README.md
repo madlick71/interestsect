@@ -1,4 +1,4 @@
-# interestsect
+# InterestSect
 
 Das soziale Netzwerk für **echte Treffen**. Kein Newsfeed, keine Likes, keine
 Profilbild-Galerien — die Grundlage jeder Kontaktaufnahme sind gemeinsame

@@ -40,18 +40,24 @@ async function CtaButtons() {
 export default function Home() {
   return (
     <main className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="text-4xl font-bold tracking-tight">interestsect</h1>
+      <h1 className="text-4xl font-bold tracking-tight">
+        InterestSect
+      </h1>
       <p className="mt-4 text-lg text-gray-700">
-        Das soziale Netzwerk für echte Treffen. Kein Newsfeed, keine Likes,
-        keine Profilbild-Galerien — nur gemeinsame Interessen und Menschen,
-        die sie teilen.
+        Das soziale Netzwerk für echte Treffen. Kein Newsfeed,
+        keine Likes, keine Profilbild-Galerien — nur gemeinsame
+        Interessen und Menschen, die sie teilen.
       </p>
 
       <ul className="mt-8 space-y-3 text-gray-800">
         <li>🤝 Kontaktaufnahme über gemeinsame Interessen</li>
         <li>🌳 Fokus auf reale Treffen statt Bildschirmzeit</li>
-        <li>📖 Riesiges, sehr spezifisches Interessen-Verzeichnis</li>
-        <li>🚫 Keine Werbung. 30 Tage testen, danach 1 €/Monat.</li>
+        <li>
+          📖 Riesiges, sehr spezifisches Interessen-Verzeichnis
+        </li>
+        <li>
+          🚫 Keine Werbung. 30 Tage testen, danach 1 €/Monat.
+        </li>
       </ul>
 
       <Suspense fallback={<div className="mt-10 h-11" />}>

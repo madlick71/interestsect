@@ -11,7 +11,7 @@ const mulish = Mulish({
 });
 
 export const metadata: Metadata = {
-  title: "interestsect",
+  title: "InterestSect",
   description:
     "Das soziale Netzwerk für echte Treffen — gemeinsame Interessen statt Newsfeed.",
 };

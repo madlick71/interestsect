@@ -34,7 +34,7 @@ class InterestsectApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'interestsect',
+      title: 'InterestSect',
       theme: ThemeData(colorSchemeSeed: Colors.black, useMaterial3: true),
       home: const AuthGate(),
     );
