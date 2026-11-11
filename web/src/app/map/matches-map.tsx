@@ -73,6 +73,10 @@ export default function MatchesMap({
 
     // URL immer auf die aktuelle Kartenansicht synchronisieren, damit
     // /map?lat=..&lng=..&zoom=.. eine eindeutige, teilbare Adresse ist.
+    // Wichtig: window.history.state DURCHREICHEN — replaceState(null, …)
+    // wischt Next.js' internen Router-State (Tree-Key) und lässt danach
+    // usePathname() auf der Zielseite beim alten Pfad hängen (Navigation
+    // bleibt optisch auf der Karte "kleben").
     map.current.on("moveend", () => {
       const m = map.current;
       if (!m) return;
@@ -81,7 +85,11 @@ export default function MatchesMap({
       params.set("lat", c.lat.toFixed(5));
       params.set("lng", c.lng.toFixed(5));
       params.set("zoom", m.getZoom().toFixed(2));
-      window.history.replaceState(null, "", `/map?${params.toString()}`);
+      window.history.replaceState(
+        window.history.state,
+        "",
+        `/map?${params.toString()}`,
+      );
     });
 
     map.current.addControl(
