@@ -2,13 +2,11 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
@@ -23,12 +21,6 @@ export default function LoginPage() {
       return;
     }
     setSent(true);
-  }
-
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.refresh();
   }
 
   if (sent) {
@@ -66,12 +58,6 @@ export default function LoginPage() {
           Login-Link senden
         </button>
       </form>
-      <button
-        onClick={handleLogout}
-        className="mt-6 text-sm text-gray-500 underline"
-      >
-        Abmelden
-      </button>
     </main>
   );
 }
