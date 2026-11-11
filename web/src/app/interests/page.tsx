@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type Category = {
@@ -18,6 +19,7 @@ type Interest = {
 };
 
 export default function InterestsPage() {
+  const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [interests, setInterests] = useState<Interest[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -91,6 +93,8 @@ export default function InterestsPage() {
     }
     setSavedAt(new Date().toLocaleTimeString("de-DE"));
     setSaving(false);
+    // Kurze Bestätigung zeigen, dann zu den Treffern weiterleiten
+    setTimeout(() => router.push("/matches"), 700);
   }
 
   const byCategory = (catId: string) =>
