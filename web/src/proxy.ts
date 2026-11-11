@@ -37,7 +37,7 @@ export async function proxy(request: NextRequest) {
     PROTECTED_PATHS.some((p) => request.nextUrl.pathname.startsWith(p))
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 

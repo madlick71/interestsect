@@ -17,7 +17,7 @@ async function MatchesList() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   const { data: matches, error } = await supabase.rpc("find_matches", {
     min_common: 2,
