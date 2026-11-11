@@ -20,10 +20,17 @@ export default async function MapPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/");
 
-  const { data: matches, error } = await supabase.rpc("find_matches", {
-    min_common: 2,
-    max_results: 20,
-  });
+  const [{ data: matches, error }, { data: ownProfile }] = await Promise.all([
+    supabase.rpc("find_matches", {
+      min_common: 2,
+      max_results: 20,
+    }),
+    supabase
+      .from("profiles")
+      .select("lat, lng")
+      .eq("id", user.id)
+      .single(),
+  ]);
 
   if (error) {
     return (
@@ -49,19 +56,43 @@ export default async function MapPage({
         }
       : undefined;
 
+  const allMatches = (matches ?? []) as MapMatch[];
+  const locatedCount = allMatches.filter(
+    (m) => m.lat != null && m.lng != null,
+  ).length;
+  const ownLocation =
+    ownProfile?.lat != null && ownProfile?.lng != null
+      ? { lat: ownProfile.lat, lng: ownProfile.lng }
+      : null;
+
+  // Overlay nur, wenn kein Treffer verortet ist — die Karte selbst rendert immer.
+  let emptyHint: string | null = null;
+  if (locatedCount === 0) {
+    if (allMatches.length === 0) {
+      emptyHint =
+        "Noch keine Treffer: Sobald jemand mindestens 2 Interessen mit dir teilt, erscheint die Person hier auf der Karte." +
+        (ownLocation
+          ? ""
+          : " Setze deine Region im Profil, damit andere dich finden.");
+    } else {
+      emptyHint =
+        "Deine Treffer haben noch keine Region mit Koordinaten im Profil hinterlegt.";
+    }
+  }
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
       <div className="mb-4 flex items-baseline justify-between gap-4">
         <h1 className="text-2xl font-bold">Treffer-Karte</h1>
         <span className="text-sm text-gray-500">
-          {(matches as MapMatch[]).filter((m) => m.lat != null && m.lng != null)
-            .length}{" "}
-          von {(matches ?? []).length} Treffern mit Ort
+          {locatedCount} von {allMatches.length} Treffern mit Ort
         </span>
       </div>
       <MapPageClient
-        matches={(matches ?? []) as MapMatch[]}
+        matches={allMatches}
         initialView={initialView}
+        ownLocation={ownLocation}
+        emptyHint={emptyHint}
       />
     </main>
   );

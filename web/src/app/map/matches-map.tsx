@@ -30,11 +30,17 @@ const MAPTOOLKIT_LOGO_SRC = "/images/maptoolkit-attribution.png";
 interface MatchesMapProps {
   matches: MapMatch[];
   initialView?: { lat?: number; lng?: number; zoom?: number };
+  // Eigener Standort aus dem Profil (falls gesetzt): eigener Pin + Fallback-Zentrum.
+  ownLocation?: { lat: number; lng: number } | null;
+  // Hinweistext im Overlay, wenn kein Treffer verortet ist (null = Overlay aus).
+  emptyHint?: string | null;
 }
 
 export default function MatchesMap({
   matches,
   initialView,
+  ownLocation,
+  emptyHint,
 }: MatchesMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -58,8 +64,11 @@ export default function MatchesMap({
       center:
         initialView?.lat != null && initialView?.lng != null
           ? [initialView.lng, initialView.lat]
-          : [9.0, 44.0],
-      zoom: initialView?.zoom ?? 4,
+          : ownLocation
+            ? [ownLocation.lng, ownLocation.lat]
+            : [10.45, 51.16],
+      zoom:
+        initialView?.zoom ?? (ownLocation && !hasData ? 11 : 5),
     });
 
     // URL immer auf die aktuelle Kartenansicht synchronisieren, damit
@@ -111,6 +120,34 @@ export default function MatchesMap({
 
     markers.current.forEach((m) => m.remove());
     markers.current = [];
+
+    // Eigener Standort: eigener Pin (weiß mit schwarzem Rand), unabhängig
+    // davon, ob schon Treffer existieren.
+    if (ownLocation) {
+      const ownEl = document.createElement("div");
+      ownEl.style.width = "26px";
+      ownEl.style.height = "26px";
+      ownEl.style.borderRadius = "50%";
+      ownEl.style.backgroundColor = "#ffffff";
+      ownEl.style.border = "3px solid #171717";
+      ownEl.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+      ownEl.style.display = "flex";
+      ownEl.style.alignItems = "center";
+      ownEl.style.justifyContent = "center";
+      ownEl.style.fontSize = "9px";
+      ownEl.style.fontWeight = "700";
+      ownEl.style.color = "#171717";
+      ownEl.textContent = "Du";
+      const ownMarker = new maplibregl.Marker({ element: ownEl })
+        .setLngLat([ownLocation.lng, ownLocation.lat])
+        .setPopup(
+          new maplibregl.Popup({ offset: 25 }).setHTML(
+            '<div style="font-size: 13px; font-weight: 600; color: #111827;">Dein Standort</div>',
+          ),
+        )
+        .addTo(map.current);
+      markers.current.push(ownMarker);
+    }
 
     if (!hasData) return;
 
@@ -280,22 +317,20 @@ export default function MatchesMap({
       // leere bounds
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coordsKey, hasData]);
+  }, [coordsKey, hasData, ownLocation?.lat, ownLocation?.lng]);
 
-  if (!hasData) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center rounded-lg border border-gray-300 bg-gray-50">
-        <p className="text-sm text-gray-500">
-          Noch keine Treffer mit Ort auf der Karte. Wähle im Profil eine
-          Region aus den Vorschlägen — und deine Treffer auch.
-        </p>
-      </div>
-    );
-  }
-
+  // Karte rendert immer — auch ohne Treffer: eigener Pin (falls gesetzt)
+  // und Hinweis-Overlay statt einer leeren Box.
   return (
     <div className="relative h-[70vh] w-full overflow-hidden rounded-lg border border-gray-300">
       <div ref={mapContainer} className="h-full w-full" />
+
+      {emptyHint && (
+        <div className="pointer-events-none absolute left-1/2 top-4 z-10 w-[min(92%,32rem)] -translate-x-1/2 rounded-lg border border-gray-300 bg-white/95 px-4 py-3 text-center text-sm text-gray-600 shadow">
+          {emptyHint}
+        </div>
+      )}
+
       {/* Maptoolkit Community License: Logo (min 24px high) + clickable copyright line */}
       <a
         href="https://www.maptoolkit.org"

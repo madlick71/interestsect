@@ -15,13 +15,22 @@ interface MapPageClientProps {
     lng?: number;
     zoom?: number;
   };
+  ownLocation?: { lat: number; lng: number } | null;
+  emptyHint?: string | null;
 }
 
 export default function MapPageClient({
   matches,
   initialView,
+  ownLocation,
+  emptyHint,
 }: MapPageClientProps) {
   return (
-    <MatchesMap matches={matches} initialView={initialView} />
+    <MatchesMap
+      matches={matches}
+      initialView={initialView}
+      ownLocation={ownLocation}
+      emptyHint={emptyHint}
+    />
   );
 }
