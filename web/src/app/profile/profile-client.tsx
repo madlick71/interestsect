@@ -76,14 +76,6 @@ export default function ProfileClient({
     region !== initial.region ||
     bio !== initial.bio;
 
-  async function handlePrimaryAction() {
-    if (!dirty) {
-      router.push("/home");
-      return;
-    }
-    await save();
-  }
-
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
       <div className="flex items-center justify-between">
@@ -158,13 +150,13 @@ export default function ProfileClient({
           <p className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</p>
         )}
 
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center gap-4">
           <button
-            onClick={handlePrimaryAction}
-            disabled={saving}
+            onClick={save}
+            disabled={saving || !dirty}
             className="rounded bg-black px-5 py-2 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
           >
-            {saving ? "Speichern…" : dirty ? "Speichern" : "Home"}
+            {saving ? "Speichern…" : "Speichern"}
           </button>
           {savedAt && (
             <span className="text-sm text-green-700">

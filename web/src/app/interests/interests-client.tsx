@@ -30,11 +30,18 @@ function normalize(s: string) {
     .replaceAll("ß", "ss");
 }
 
+function setsEqual(a: Set<string>, b: Set<string>) {
+  if (a.size !== b.size) return false;
+  for (const v of a) if (!b.has(v)) return false;
+  return true;
+}
+
 export default function InterestsClient() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [interests, setInterests] = useState<Interest[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [initialSelected, setInitialSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
   // Default: alle Kategorien zugeklappt
   const [openCats, setOpenCats] = useState<Set<string>>(new Set());
@@ -61,7 +68,9 @@ export default function InterestsClient() {
     }
     setCategories(cats.data ?? []);
     setInterests(ints.data ?? []);
-    setSelected(new Set((mine.data ?? []).map((r) => r.interest_id)));
+    const loaded = new Set((mine.data ?? []).map((r) => r.interest_id));
+    setSelected(loaded);
+    setInitialSelected(loaded);
   }, []);
 
   useEffect(() => {
@@ -107,9 +116,20 @@ export default function InterestsClient() {
       }
     }
     setSavedAt(new Date().toLocaleTimeString("de-DE"));
+    setInitialSelected(new Set(selected));
     setSaving(false);
     // Kurze Bestätigung zeigen, dann zu den Treffern weiterleiten
     setTimeout(() => router.push("/home"), 700);
+  }
+
+  const dirty = !setsEqual(selected, initialSelected);
+
+  async function handlePrimaryAction() {
+    if (!dirty) {
+      router.push("/home");
+      return;
+    }
+    await save();
   }
 
   function toggleCat(id: string) {
@@ -218,13 +238,13 @@ export default function InterestsClient() {
         )}
       </div>
 
-      <div className="sticky bottom-4 mt-10 flex items-center gap-4 rounded-lg border bg-white p-4 shadow">
+      <div className="sticky bottom-4 mt-10 flex items-center justify-center gap-4 rounded-lg border bg-white p-4 shadow">
         <button
-          onClick={save}
+          onClick={handlePrimaryAction}
           disabled={saving}
           className="rounded bg-black px-5 py-2 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
         >
-          {saving ? "Speichern…" : "Speichern"}
+          {saving ? "Speichern…" : dirty ? "Speichern" : "Home"}
         </button>
         {savedAt && (
           <span className="text-sm text-green-700">Gespeichert um {savedAt}</span>
