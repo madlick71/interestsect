@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Seiten, die eine Anmeldung erfordern
-const PROTECTED_PATHS = ["/interests", "/matches", "/protected"];
+const PROTECTED_PATHS = ["/interests", "/matches", "/profile", "/protected"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
