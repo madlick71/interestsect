@@ -158,7 +158,7 @@ export default function ProfileClient({
           <p className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</p>
         )}
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center gap-4">
           <button
             onClick={handlePrimaryAction}
             disabled={saving}
