@@ -23,7 +23,7 @@ select 'trial_laeuft' as check,
 
 -- 2) Seed-Umfang plausibel?
 select 'kategorien' as check, count(*) as anzahl from public.interest_categories; -- 12 erwartet
-select 'interessen' as check, count(*) as anzahl from public.interests;          -- ~180 erwartet
+select 'interessen' as check, count(*) as anzahl from public.interests;          -- 600 erwartet (nach Erweiterung 2026-11)
 
 -- 3) Gemeinsame Interessen anlegen: 3 für beide, 1 nur für Anna
 insert into public.user_interests (user_id, interest_id)
