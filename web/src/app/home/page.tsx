@@ -94,7 +94,7 @@ async function HomeList() {
 
 export default function HomePage() {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12">
+    <main className="mx-auto w-full max-w-[1600px] px-4 py-12 md:px-8">
       <SiteNav />
       <div className="flex items-baseline justify-between">
         <h1 className="text-2xl font-bold">Deine Treffer</h1>

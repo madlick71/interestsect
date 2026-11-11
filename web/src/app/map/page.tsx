@@ -35,7 +35,7 @@ export default async function MapPage({
 
   if (error) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-12">
+      <main className="mx-auto w-full max-w-[1600px] px-4 py-12 md:px-8">
         <SiteNav />
         <h1 className="text-2xl font-bold">Treffer-Karte</h1>
         <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">
@@ -83,7 +83,7 @@ export default async function MapPage({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12">
+    <main className="mx-auto w-full max-w-[1600px] px-4 py-12 md:px-8">
       <SiteNav />
       <div className="mb-4 flex items-baseline justify-between gap-4">
         <h1 className="text-2xl font-bold">Treffer-Karte</h1>

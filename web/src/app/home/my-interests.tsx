@@ -20,7 +20,7 @@ export default function MyInterests({ interests }: { interests: string[] }) {
       </button>
 
       {open && (
-        <ul className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1 rounded-lg border bg-white p-4 text-sm sm:grid-cols-3">
+        <ul className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1 rounded-lg border bg-white p-4 text-sm sm:grid-cols-3 xl:grid-cols-5">
           {interests.map((name) => (
             <li key={name}>{name}</li>
           ))}

@@ -87,11 +87,11 @@ export default function ProfileClient({
     bio !== initial.bio;
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12">
+    <main className="mx-auto w-full max-w-[1600px] px-4 py-12 md:px-8">
       <SiteNav />
       <h1 className="text-2xl font-bold">Mein Profil</h1>
 
-      {/* Einheitlicher Seitenrahmen (max-w-6xl); Formulare in lesbarer Breite */}
+      {/* Einheitlicher Seitenrahmen (volle Breite, max. 1600px); Formulare in lesbarer Breite */}
       <div className="max-w-xl">
         <div className="mt-6 space-y-5">
         <div>
