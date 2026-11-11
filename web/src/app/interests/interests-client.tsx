@@ -36,6 +36,8 @@ export default function InterestsClient() {
   const [interests, setInterests] = useState<Interest[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
+  // Default: alle Kategorien zugeklappt
+  const [openCats, setOpenCats] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +112,15 @@ export default function InterestsClient() {
     setTimeout(() => router.push("/matches"), 700);
   }
 
+  function toggleCat(id: string) {
+    setOpenCats((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   const q = normalize(query.trim());
   const matches = (i: Interest) =>
     !q ||
@@ -154,27 +165,48 @@ export default function InterestsClient() {
         {categories.map((cat) => {
           const items = visible(cat.id);
           if (items.length === 0) return null;
+          const open = openCats.has(cat.id);
+          const selectedInCat = items.filter((i) =>
+            selected.has(i.id),
+          ).length;
           return (
             <section key={cat.id}>
-              <h2 className="font-semibold">{cat.name_de}</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {items.map((interest) => {
-                  const active = selected.has(interest.id);
-                  return (
-                    <button
-                      key={interest.id}
-                      onClick={() => toggle(interest.id)}
-                      className={`rounded-full border px-3 py-1 text-sm transition ${
-                        active
-                          ? "border-black bg-black text-white"
-                          : "border-gray-300 hover:border-gray-500"
-                      }`}
-                    >
-                      {interest.name_de}
-                    </button>
-                  );
-                })}
-              </div>
+              <button
+                type="button"
+                onClick={() => toggleCat(cat.id)}
+                aria-expanded={open}
+                className="flex w-full items-baseline justify-between gap-4 border-b pb-2 text-left"
+              >
+                <h2 className="font-semibold">{cat.name_de}</h2>
+                <span className="text-sm text-gray-500">
+                  {selectedInCat > 0 && (
+                    <span className="mr-2">
+                      {selectedInCat} ausgewählt
+                    </span>
+                  )}
+                  {items.length} Interessen <span aria-hidden>{open ? "▲" : "▼"}</span>
+                </span>
+              </button>
+              {open && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {items.map((interest) => {
+                    const active = selected.has(interest.id);
+                    return (
+                      <button
+                        key={interest.id}
+                        onClick={() => toggle(interest.id)}
+                        className={`rounded-full border px-3 py-1 text-sm transition ${
+                          active
+                            ? "border-black bg-black text-white"
+                            : "border-gray-300 hover:border-gray-500"
+                        }`}
+                      >
+                        {interest.name_de}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           );
         })}
