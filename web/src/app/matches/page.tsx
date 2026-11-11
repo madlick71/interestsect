@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import MyInterests from "./my-interests";
 
 type Match = {
   user_id: string;
@@ -19,6 +20,15 @@ async function MatchesList() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/");
 
+  // Eigene Interessen für Zähler + aufklappbare Liste
+  const { data: myInterestRows } = await supabase
+    .from("user_interests")
+    .select("interests(name_de)");
+  const myInterests = (myInterestRows ?? [])
+    .map((r) => r.interests?.name_de ?? "")
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, "de"));
+
   const { data: matches, error } = await supabase.rpc("find_matches", {
     min_common: 2,
     max_results: 20,
@@ -26,24 +36,34 @@ async function MatchesList() {
 
   if (error) {
     return (
-      <p className="mt-4 rounded bg-red-50 p-3 text-red-700">{error.message}</p>
+      <div>
+        <MyInterests interests={myInterests} />
+        <p className="mt-4 rounded bg-red-50 p-3 text-red-700">
+          {error.message}
+        </p>
+      </div>
     );
   }
 
   if (!matches || matches.length === 0) {
     return (
-      <div className="mt-8 rounded border p-6 text-gray-600">
-        Noch keine Treffer. Wähle mehr Interessen — je spezifischer, desto
-        besser.{" "}
-        <Link href="/interests" className="underline">
-          Interessen bearbeiten
-        </Link>
+      <div>
+        <MyInterests interests={myInterests} />
+        <div className="mt-8 rounded border p-6 text-gray-600">
+          Noch keine Treffer. Wähle mehr Interessen — je spezifischer, desto
+          besser.{" "}
+          <Link href="/interests" className="underline">
+            Interessen bearbeiten
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mt-8 space-y-4">
+    <div>
+      <MyInterests interests={myInterests} />
+      <div className="mt-6 space-y-4">
       {(matches as Match[]).map((m) => (
         <article key={m.user_id} className="rounded-lg border p-5">
           <div className="flex items-baseline justify-between">
@@ -66,6 +86,7 @@ async function MatchesList() {
           </div>
         </article>
       ))}
+      </div>
     </div>
   );
 }
