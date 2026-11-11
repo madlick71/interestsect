@@ -71,6 +71,18 @@ export default function ProfileClient({
 
   const trialEndDate = formatDate(subscription.trialEnd);
   const periodEndDate = formatDate(subscription.periodEnd);
+  const dirty =
+    displayName !== initial.display_name ||
+    region !== initial.region ||
+    bio !== initial.bio;
+
+  async function handlePrimaryAction() {
+    if (!dirty) {
+      router.push("/home");
+      return;
+    }
+    await save();
+  }
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -148,11 +160,11 @@ export default function ProfileClient({
 
         <div className="flex items-center gap-4">
           <button
-            onClick={save}
+            onClick={handlePrimaryAction}
             disabled={saving}
             className="rounded bg-black px-5 py-2 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
           >
-            {saving ? "Speichern…" : "Speichern"}
+            {saving ? "Speichern…" : dirty ? "Speichern" : "Home"}
           </button>
           {savedAt && (
             <span className="text-sm text-green-700">
