@@ -19,8 +19,13 @@ pool_mode = "transaction"
 
 [auth]
 enabled = true
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["io.interestsect.app://auth-callback", "http://localhost:3000/auth/callback"]
+site_url = "https://interestsect.com"
+additional_redirect_urls = [
+  "https://interestsect.com/auth/callback",
+  "https://www.interestsect.com/auth/callback",
+  "io.interestsect.app://auth-callback",
+  "http://localhost:3000/auth/callback",
+]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
