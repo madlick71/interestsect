@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Seiten, die eine Anmeldung erfordern
+const PROTECTED_PATHS = ["/interests", "/matches", "/protected"];
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -29,7 +32,10 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && request.nextUrl.pathname.startsWith("/protected")) {
+  if (
+    !user &&
+    PROTECTED_PATHS.some((p) => request.nextUrl.pathname.startsWith(p))
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
