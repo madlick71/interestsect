@@ -46,7 +46,6 @@ export default function InterestsClient() {
   // Default: alle Kategorien zugeklappt
   const [openCats, setOpenCats] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
-  const [savedAt, setSavedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -115,10 +114,9 @@ export default function InterestsClient() {
         return;
       }
     }
-    setSavedAt(new Date().toLocaleTimeString("de-DE"));
     setInitialSelected(new Set(selected));
     setSaving(false);
-    // Kurze Bestätigung zeigen, dann zu den Treffern weiterleiten
+    // Kurze Pause, dann zur Startseite weiterleiten
     setTimeout(() => router.push("/home"), 700);
   }
 
@@ -246,9 +244,6 @@ export default function InterestsClient() {
         >
           {saving ? "Speichern…" : dirty ? "Speichern" : "Home"}
         </button>
-        {savedAt && (
-          <span className="text-sm text-green-700">Gespeichert um {savedAt}</span>
-        )}
       </div>
     </main>
   );
