@@ -161,7 +161,8 @@ export default function InterestsClient() {
       <h1 className="text-2xl font-bold">Deine Interessen</h1>
       <p className="mt-2 text-sm text-gray-600">
         Wähle so spezifisch wie möglich — die Grundlage für Treffer sind
-        gemeinsame Interessen. Aktuell ausgewählt: {selected.size}
+        gemeinsame Interessen. Aktuell ausgewählt: {selected.size} von{" "}
+        {interests.length.toLocaleString("de-DE")} Interessen
       </p>
 
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-red-700">{error}</p>}
