@@ -2,9 +2,16 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Seiten, die eine Anmeldung erfordern
-const PROTECTED_PATHS = ["/interests", "/matches", "/profile", "/protected"];
+const PROTECTED_PATHS = ["/interests", "/home", "/profile", "/protected"];
 
 export async function proxy(request: NextRequest) {
+  // Alte Route /matches wurde nach /home umbenannt
+  if (request.nextUrl.pathname === "/matches") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/home";
+    return NextResponse.redirect(url);
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

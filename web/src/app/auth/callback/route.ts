@@ -9,7 +9,14 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}/interests`);
+      // Erstlogin (noch keine Interessen gewählt) -> Onboarding,
+      // alle weiteren Logins direkt zur Startseite
+      const { count } = await supabase
+        .from("user_interests")
+        .select("interest_id", { count: "exact", head: true });
+      return NextResponse.redirect(
+        `${origin}${count && count > 0 ? "/home" : "/interests"}`,
+      );
     }
   }
 

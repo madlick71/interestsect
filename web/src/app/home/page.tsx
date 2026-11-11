@@ -13,7 +13,7 @@ type Match = {
   shared_interests: string[];
 };
 
-async function MatchesList() {
+async function HomeList() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -91,7 +91,7 @@ async function MatchesList() {
   );
 }
 
-export default function MatchesPage() {
+export default function HomePage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
       <div className="flex items-center justify-between">
@@ -121,7 +121,7 @@ export default function MatchesPage() {
         Menschen mit mindestens 2 gemeinsamen Interessen.
       </p>
       <Suspense fallback={<p className="mt-8 text-gray-500">Lade Treffer…</p>}>
-        <MatchesList />
+        <HomeList />
       </Suspense>
     </main>
   );

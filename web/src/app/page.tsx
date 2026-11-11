@@ -18,7 +18,7 @@ async function CtaButtons() {
           Meine Interessen
         </Link>
         <Link
-          href="/matches"
+          href="/home"
           className="rounded border border-black px-5 py-2.5 font-medium hover:bg-gray-100"
         >
           Treffer anzeigen

@@ -109,7 +109,7 @@ export default function InterestsClient() {
     setSavedAt(new Date().toLocaleTimeString("de-DE"));
     setSaving(false);
     // Kurze Bestätigung zeigen, dann zu den Treffern weiterleiten
-    setTimeout(() => router.push("/matches"), 700);
+    setTimeout(() => router.push("/home"), 700);
   }
 
   function toggleCat(id: string) {

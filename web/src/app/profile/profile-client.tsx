@@ -62,6 +62,7 @@ export default function ProfileClient({
   }
 
   async function logout() {
+    if (!window.confirm("Möchtest du dich wirklich abmelden?")) return;
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");
@@ -76,10 +77,10 @@ export default function ProfileClient({
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Mein Profil</h1>
         <Link
-          href="/matches"
+          href="/home"
           className="text-sm text-gray-500 underline hover:text-gray-800"
         >
-          Zu den Treffern
+          zurück
         </Link>
       </div>
 
@@ -129,10 +130,7 @@ export default function ProfileClient({
 
         <div>
           <label htmlFor="bio" className="block text-sm text-gray-500">
-            Über mich{" "}
-            <span className="text-gray-400">
-              (kurz — keine Selbstdarstellung)
-            </span>
+            Über mich
           </label>
           <textarea
             id="bio"
