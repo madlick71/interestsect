@@ -92,7 +92,7 @@ export default function ProfileClient({
       <h1 className="text-2xl font-bold">Mein Profil</h1>
 
       {/* Einheitlicher Seitenrahmen (volle Breite, max. 1600px); Formulare in lesbarer Breite */}
-      <div className="max-w-xl">
+      <div className="mx-auto max-w-xl">
         <div className="mt-6 space-y-5">
         <div>
           <label htmlFor="email" className="block text-sm text-gray-500">
