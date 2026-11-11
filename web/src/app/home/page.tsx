@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MyInterests from "./my-interests";
+import SiteNav from "@/app/components/SiteNav";
 
 type Match = {
   user_id: string;
@@ -94,28 +95,9 @@ async function HomeList() {
 export default function HomePage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
-      <div className="flex items-center justify-between">
+      <SiteNav />
+      <div className="flex items-baseline justify-between">
         <h1 className="text-2xl font-bold">Deine Treffer</h1>
-        <Link
-          href="/profile"
-          aria-label="Mein Profil"
-          title="Mein Profil"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-600 transition hover:border-black hover:text-black"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="h-5 w-5"
-            aria-hidden
-          >
-            <path
-              fillRule="evenodd"
-              d="M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm-7 16a7 7 0 0 1 14 0H5Z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </Link>
       </div>
       <p className="mt-2 text-sm text-gray-600">
         Menschen mit mindestens 2 gemeinsamen Interessen.{" "}

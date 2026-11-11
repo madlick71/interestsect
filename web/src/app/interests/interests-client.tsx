@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import SiteNav from "@/app/components/SiteNav";
 
 type Category = {
   id: string;
@@ -165,6 +166,7 @@ export default function InterestsClient() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-12">
+      <SiteNav />
       <h1 className="text-2xl font-bold">Deine Interessen</h1>
       <p className="mt-2 text-sm text-gray-600">
         Wähle so spezifisch wie möglich — die Grundlage für Treffer sind

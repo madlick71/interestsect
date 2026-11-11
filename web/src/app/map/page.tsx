@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MapPageClient from "./map-page-client";
+import SiteNav from "@/app/components/SiteNav";
 import type { MapMatch } from "./matches-map";
 
 // Treffer-Karte: dieselben Treffer wie auf der Home-Seite (find_matches),
@@ -82,6 +83,7 @@ export default async function MapPage({
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
+      <SiteNav />
       <div className="mb-4 flex items-baseline justify-between gap-4">
         <h1 className="text-2xl font-bold">Treffer-Karte</h1>
         <span className="text-sm text-gray-500">

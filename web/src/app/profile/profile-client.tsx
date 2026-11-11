@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import LocationInput from "@/app/components/LocationInput";
+import SiteNav from "@/app/components/SiteNav";
 
 type ProfileData = {
   display_name: string;
@@ -88,15 +88,8 @@ export default function ProfileClient({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Mein Profil</h1>
-        <Link
-          href="/home"
-          className="text-sm text-gray-500 underline hover:text-gray-800"
-        >
-          zurück
-        </Link>
-      </div>
+      <SiteNav />
+      <h1 className="text-2xl font-bold">Mein Profil</h1>
 
       <div className="mt-6 space-y-5">
         <div>
