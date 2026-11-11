@@ -42,7 +42,6 @@ export default function ProfileClient({
   const [region, setRegion] = useState(initial.region);
   const [bio, setBio] = useState(initial.bio);
   const [saving, setSaving] = useState(false);
-  const [savedAt, setSavedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function save() {
@@ -55,8 +54,6 @@ export default function ProfileClient({
       .eq("id", userId);
     if (updateError) {
       setError(updateError.message);
-    } else {
-      setSavedAt(new Date().toLocaleTimeString("de-DE"));
     }
     setSaving(false);
   }
@@ -158,11 +155,6 @@ export default function ProfileClient({
           >
             {saving ? "Speichern…" : "Speichern"}
           </button>
-          {savedAt && (
-            <span className="text-sm text-green-700">
-              Gespeichert um {savedAt}
-            </span>
-          )}
         </div>
       </div>
 
