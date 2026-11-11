@@ -165,7 +165,7 @@ export default function InterestsClient() {
     interests.filter((i) => i.category_id === catId && matches(i));
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-4 py-12 md:px-8">
+    <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
       <SiteNav />
       <h1 className="text-2xl font-bold">Deine Interessen</h1>
       <p className="mt-2 text-sm text-gray-600">

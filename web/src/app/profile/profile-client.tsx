@@ -87,7 +87,7 @@ export default function ProfileClient({
     bio !== initial.bio;
 
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-4 py-12 md:px-8">
+    <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
       <SiteNav />
       <h1 className="text-2xl font-bold">Mein Profil</h1>
 
