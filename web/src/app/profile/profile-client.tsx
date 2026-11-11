@@ -87,11 +87,13 @@ export default function ProfileClient({
     bio !== initial.bio;
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
+    <main className="mx-auto max-w-6xl px-4 py-12">
       <SiteNav />
       <h1 className="text-2xl font-bold">Mein Profil</h1>
 
-      <div className="mt-6 space-y-5">
+      {/* Einheitlicher Seitenrahmen (max-w-6xl); Formulare in lesbarer Breite */}
+      <div className="max-w-xl">
+        <div className="mt-6 space-y-5">
         <div>
           <label htmlFor="email" className="block text-sm text-gray-500">
             E-Mail
@@ -208,6 +210,7 @@ export default function ProfileClient({
       >
         Abmelden
       </button>
+      </div>
     </main>
   );
 }
