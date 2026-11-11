@@ -21,3 +21,4 @@ supabase/.branches/
 # Temporär
 *.log
 tmp/
+__pycache__/
