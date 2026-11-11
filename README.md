@@ -29,8 +29,8 @@ Next.js (Vercel) ───▶   Postgres · Auth (RLS) · REST-API · Edge Funct
 ├── about.txt              # Produktvision
 ├── supabase/
 │   ├── config.toml        # Lokale Konfiguration (Ports 553xx, s.u.)
-│   ├── migrations/        # Versioniertes DB-Schema
-│   ├── seed.sql           # Interessen-Taxonomie (12 Kategorien, 187 Interessen)
+│   ├── migrations/        # Versioniertes DB-Schema + Taxonomie-Seed
+│   │                      # (Seed als Migration → gilt auch für Produktion)
 │   ├── functions/         # Edge Functions (stripe-checkout, stripe-webhook)
 │   └── tests/             # SQL-Rauchtest
 ├── web/                   # Next.js-App
@@ -46,7 +46,8 @@ Voraussetzungen: Node ≥ 24, Flutter, Supabase CLI, Docker (z. B. colima).
 supabase start
 
 # 2) Zugangsdaten für die Web-App übernehmen (in web/.env.local eintragen)
-supabase status -o env
+#    Cloud: siehe Supabase-Dashboard → Settings → API
+#    Lokal:  supabase status -o env
 
 # 3) Web-App
 cd web && pnpm install && pnpm dev   # http://localhost:3000
