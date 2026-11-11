@@ -194,6 +194,8 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          lat: number | null
+          lng: number | null
           region: string | null
           search_region: string | null
           updated_at: string
@@ -203,6 +205,8 @@ export type Database = {
           created_at?: string
           display_name: string
           id: string
+          lat?: number | null
+          lng?: number | null
           region?: string | null
           search_region?: string | null
           updated_at?: string
@@ -212,6 +216,8 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          lat?: number | null
+          lng?: number | null
           region?: string | null
           search_region?: string | null
           updated_at?: string
@@ -292,6 +298,8 @@ export type Database = {
           bio: string
           common_interests: number
           display_name: string
+          lat: number | null
+          lng: number | null
           region: string
           shared_interests: string[]
           user_id: string

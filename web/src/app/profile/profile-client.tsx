@@ -4,10 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import LocationInput from "@/app/components/LocationInput";
 
 type ProfileData = {
   display_name: string;
   region: string;
+  lat: number | null;
+  lng: number | null;
   bio: string;
 };
 
@@ -40,6 +43,8 @@ export default function ProfileClient({
   const router = useRouter();
   const [displayName, setDisplayName] = useState(initial.display_name);
   const [region, setRegion] = useState(initial.region);
+  const [regionLat, setRegionLat] = useState<number | null>(initial.lat);
+  const [regionLng, setRegionLng] = useState<number | null>(initial.lng);
   const [bio, setBio] = useState(initial.bio);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +55,13 @@ export default function ProfileClient({
     const supabase = createClient();
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ display_name: displayName, region, bio })
+      .update({
+        display_name: displayName,
+        region: region || null,
+        lat: regionLat,
+        lng: regionLng,
+        bio,
+      })
       .eq("id", userId);
     if (updateError) {
       setError(updateError.message);
@@ -71,6 +82,8 @@ export default function ProfileClient({
   const dirty =
     displayName !== initial.display_name ||
     region !== initial.region ||
+    regionLat !== initial.lat ||
+    regionLng !== initial.lng ||
     bio !== initial.bio;
 
   return (
@@ -116,17 +129,32 @@ export default function ProfileClient({
           <label htmlFor="region" className="block text-sm text-gray-500">
             Region{" "}
             <span className="text-gray-400">
-              (für Treffer in der Nähe)
+              (für Treffer in der Nähe — bitte aus den Vorschlägen wählen)
             </span>
           </label>
-          <input
+          <LocationInput
             id="region"
-            type="text"
             value={region}
-            onChange={(e) => setRegion(e.target.value)}
+            onChange={(v) => {
+              setRegion(v);
+              // Manuelle Eingabe nach einer Auswahl macht die Koordinaten
+              // ungültig — erst ein neuer Pick liefert sie wieder.
+              setRegionLat(null);
+              setRegionLng(null);
+            }}
+            onPick={(choice) => {
+              setRegion(choice.label);
+              setRegionLat(choice.lat);
+              setRegionLng(choice.lon);
+            }}
             placeholder="z. B. München"
             className="mt-1 w-full rounded border border-gray-300 px-3 py-2 outline-none focus:border-black"
           />
+          <p className="mt-1 text-xs text-gray-400">
+            {regionLat != null && regionLng != null
+              ? "Ort mit Koordinaten gespeichert — du erscheinst auf der Treffer-Karte."
+              : "Nur per Vorschlagsauswahl wird der Ort auf der Karte verortet."}
+          </p>
         </div>
 
         <div>

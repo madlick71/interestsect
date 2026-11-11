@@ -12,7 +12,7 @@ export default async function ProfilePage() {
   const [{ data: profile }, { data: sub }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("display_name, region, bio")
+      .select("display_name, region, lat, lng, bio")
       .eq("id", user.id)
       .single(),
     supabase
@@ -29,6 +29,8 @@ export default async function ProfilePage() {
       initial={{
         display_name: profile?.display_name ?? "",
         region: profile?.region ?? "",
+        lat: profile?.lat ?? null,
+        lng: profile?.lng ?? null,
         bio: profile?.bio ?? "",
       }}
       subscription={{

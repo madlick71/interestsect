@@ -118,7 +118,10 @@ export default function HomePage() {
         </Link>
       </div>
       <p className="mt-2 text-sm text-gray-600">
-        Menschen mit mindestens 2 gemeinsamen Interessen.
+        Menschen mit mindestens 2 gemeinsamen Interessen.{" "}
+        <Link href="/map" className="underline hover:text-gray-800">
+          Treffer auf der Karte ansehen
+        </Link>
       </p>
       <Suspense fallback={<p className="mt-8 text-gray-500">Lade Treffer…</p>}>
         <HomeList />
