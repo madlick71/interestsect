@@ -1,6 +1,9 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { Background } from "@/app/components/background";
+import { DashedLine } from "@/app/components/dashed-line";
+import { Button } from "@/app/components/ui/button";
 
 async function CtaButtons() {
   const supabase = await createClient();
@@ -10,59 +13,76 @@ async function CtaButtons() {
 
   if (user) {
     return (
-      <div className="mt-10 flex gap-4">
-        <Link
-          href="/interests"
-          className="rounded bg-black px-5 py-2.5 font-medium text-white hover:bg-gray-800"
-        >
-          Meine Interessen
-        </Link>
-        <Link
-          href="/home"
-          className="rounded border border-black px-5 py-2.5 font-medium hover:bg-gray-100"
-        >
-          Treffer anzeigen
-        </Link>
+      <div className="mt-8 flex flex-wrap gap-4">
+        <Button asChild size="lg">
+          <Link href="/interests">Meine Interessen</Link>
+        </Button>
+        <Button variant="outline" size="lg" asChild>
+          <Link href="/home">Treffer anzeigen</Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <Link
-      href="/login"
-      className="mt-10 inline-block rounded bg-black px-5 py-2.5 font-medium text-white hover:bg-gray-800"
-    >
-      Jetzt starten — 30 Tage kostenlos
-    </Link>
+    <Button asChild size="lg" className="mt-8">
+      <Link href="/login">Jetzt starten — 30 Tage kostenlos</Link>
+    </Button>
   );
 }
 
 export default function Home() {
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="text-4xl font-bold tracking-tight">
-        InterestSect
-      </h1>
-      <p className="mt-4 text-lg text-gray-700">
-        Das soziale Netzwerk für echte Treffen. Kein Newsfeed,
-        keine Likes, keine Werbung — nur gemeinsame Interessen
-        und Menschen, die sie teilen.
-      </p>
+    <Background>
+      <main className="py-32 lg:py-44">
+        <div className="container flex flex-col justify-between gap-10 md:gap-14 lg:flex-row lg:gap-20">
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold tracking-tight text-balance md:text-5xl lg:text-6xl">
+              InterestSect
+            </h1>
+            <p className="text-muted-foreground mt-5 max-w-xl text-lg leading-snug">
+              Das soziale Netzwerk für echte Treffen. Kein Newsfeed, keine
+              Likes, keine Werbung — nur gemeinsame Interessen und Menschen,
+              die sie teilen.
+            </p>
 
-      <ul className="mt-8 space-y-3 text-gray-800">
-        <li>🤝 Kontaktaufnahme über gemeinsame Interessen</li>
-        <li>🌳 Fokus auf reale Treffen statt Bildschirmzeit</li>
-        <li>
-          📖 Riesiges, sehr spezifisches Interessen-Verzeichnis
-        </li>
-        <li>
-          🚫 Keine Werbung. 30 Tage testen, danach 1 €/Monat.
-        </li>
-      </ul>
+            <Suspense fallback={<div className="mt-8 h-10" />}>
+              <CtaButtons />
+            </Suspense>
+          </div>
 
-      <Suspense fallback={<div className="mt-10 h-11" />}>
-        <CtaButtons />
-      </Suspense>
-    </main>
+          <div className="relative flex flex-1 flex-col justify-center max-lg:pt-8 lg:pl-10">
+            <DashedLine
+              orientation="vertical"
+              className="absolute top-0 left-0 max-lg:hidden"
+            />
+            <DashedLine
+              orientation="horizontal"
+              className="absolute top-0 lg:hidden"
+            />
+            <ul className="space-y-6">
+              <li className="flex gap-3 lg:gap-4">
+                <span aria-hidden="true">🤝</span>
+                <span>Kontaktaufnahme über gemeinsame Interessen</span>
+              </li>
+              <li className="flex gap-3 lg:gap-4">
+                <span aria-hidden="true">🌳</span>
+                <span>Fokus auf reale Treffen statt Bildschirmzeit</span>
+              </li>
+              <li className="flex gap-3 lg:gap-4">
+                <span aria-hidden="true">📖</span>
+                <span>Riesiges, sehr spezifisches Interessen-Verzeichnis</span>
+              </li>
+              <li className="flex gap-3 lg:gap-4">
+                <span aria-hidden="true">🚫</span>
+                <span>
+                  Keine Werbung. 30 Tage testen, danach 1 €/Monat.
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </Background>
   );
 }

@@ -1,26 +1,177 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+/*
+  Design-System: shadcn/ui-Token-Set (Tailwind v4, CSS-Variablen)
+  nach dem Mainline-Template (shadcnblocks.com): schwarze Buttons und
+  Text, Neutraltöne basieren auf Stone, dazu ein leichter Creme-Orange-
+  Tönungs-Gradient (--tint) als Landingpage-Hintergrund. Schrift bleibt
+  Mulish (layout.tsx: --font-mulish). Dark Mode folgt automatisch der
+  Systemeinstellung.
+*/
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #171717;
+  --primary-foreground: #ffffff;
+  /* Creme-Tönung des Mainline-Template-Hintergrunds (oklch) */
+  --tint: oklch(0.92 0.04 86.47);
+  --secondary: #f5f5f4;
+  --secondary-foreground: #292524;
+  --muted: #f5f5f4;
+  --muted-foreground: #57534e;
+  --accent: #f5f5f4;
+  --accent-foreground: #292524;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e7e5e4;
+  --input: #e7e5e4;
+  --ring: #ff5a36;
+
+  --radius: 8px;
+
+  --shadow-2xs: 0 1px 3px 0px hsl(24 6% 10% / 0.05);
+  --shadow-xs: 0 1px 3px 0px hsl(24 6% 10% / 0.05);
+  --shadow-sm: 0 1px 3px 0px hsl(24 6% 10% / 0.1), 0 1px 2px -1px hsl(24 6% 10% / 0.1);
+  --shadow: 0 1px 3px 0px hsl(24 6% 10% / 0.1), 0 1px 2px -1px hsl(24 6% 10% / 0.1);
+  --shadow-md: 0 1px 3px 0px hsl(24 6% 10% / 0.1), 0 2px 4px -1px hsl(24 6% 10% / 0.1);
+  --shadow-lg: 0 1px 3px 0px hsl(24 6% 10% / 0.1), 0 4px 6px -1px hsl(24 6% 10% / 0.1);
+  --shadow-xl: 0 1px 3px 0px hsl(24 6% 10% / 0.1), 0 8px 10px -1px hsl(24 6% 10% / 0.1);
+  --shadow-2xl: 0 1px 3px 0px hsl(24 6% 10% / 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0c0a09;
+    --foreground: #fafaf9;
+    --card: #1c1917;
+    --card-foreground: #fafaf9;
+    --popover: #1c1917;
+    --popover-foreground: #fafaf9;
+    --primary: #fafaf9;
+    --primary-foreground: #1c1917;
+    --secondary: #292524;
+    --secondary-foreground: #fafaf9;
+    --muted: #292524;
+    --muted-foreground: #a8a29e;
+    --accent: #292524;
+    --accent-foreground: #fafaf9;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: hsl(0 0% 100% / 10%);
+    --input: hsl(0 0% 100% / 15%);
+    --ring: #ff6a47;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-mulish);
-  --font-mono: var(--font-mulish);
-}
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-tint: var(--tint);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --radius-xs: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 2 - 4px);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 3);
+  --radius-4xl: calc(var(--radius) * 4);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1400px; /* default is 1536px */
+
+  --font-sans: var(--font-mulish), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mulish), ui-monospace, monospace;
+  --font-display: var(--font-mulish), ui-sans-serif, system-ui, sans-serif;
+  --font-text: var(--font-mulish), ui-sans-serif, system-ui, sans-serif;
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-mulish), var(--font-sans), Arial, Helvetica, sans-serif;
+/* Seiten-Container der Mainline-Blocks (max. 1220px ab 1400px Viewport) */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+  @media (width >= 1400px) {
+    max-width: 1220px;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+}
+
+@layer components {
+  button {
+    cursor: pointer;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+section[id] {
+  scroll-margin-top: 5rem;
+}
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
 }

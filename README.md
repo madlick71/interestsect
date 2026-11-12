@@ -38,6 +38,46 @@ Next.js (Cloudflare) ▶   Postgres · Auth (RLS) · REST-API · Edge Functions
 └── mobile/                # Flutter-App (iOS/Android)
 ```
 
+## Design-System (Web)
+
+Die Web-App nutzt **Tailwind CSS 4** mit einem **shadcn/ui-Token-Set**
+(CSS-Variablen in [`web/src/app/globals.css`](./web/src/app/globals.css)),
+optisch angelehnt an das [Mainline-Template](https://github.com/shadcnblocks/mainline-nextjs-template)
+von shadcnblocks.com (MIT + Commons Clause):
+
+- **Farben:** schwarze Primär-Buttons/Text (`--primary`), Neutraltöne auf
+  Stone-Basis; die Landingpage bekommt über
+  [`background.tsx`](./web/src/app/components/background.tsx) einen leichten
+  Creme-Orange-Gradient (`--tint`) am oberen Rand — wie die Template-Referenz.
+- **Schrift:** Mulish (Variable Font), unverändert.
+- **Dark Mode:** automatisch via `prefers-color-scheme`.
+- **UI-Primitives** (z. B. Button in
+  [`web/src/app/components/ui/`](./web/src/app/components/ui)) folgen dem
+  shadcn/ui-Stil; weitere Komponenten lassen sich per
+  `components.json` + shadcn-CLI ergänzen.
+
+## Lokaler Web-Server
+
+Lokal läuft nur der Next.js-Dev-Server — kein Docker, keine lokale Datenbank.
+Alle Daten (Postgres, Auth, Edge Functions) liegen im Supabase-Cloud-Projekt
+(Frankfurt).
+
+Voraussetzung: [Node.js](https://nodejs.org) mit [pnpm](https://pnpm.io).
+
+```bash
+cd web
+cp .env.local.example .env.local   # einmalig; Cloud-Zugangsdaten eintragen
+pnpm install
+pnpm dev                           # → http://localhost:3000
+```
+
+In `web/.env.local` `NEXT_PUBLIC_SUPABASE_URL` und `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+des Cloud-Projekts eintragen (Supabase-Dashboard → Project Settings → API).
+Falls der Login-Callback auf localhost nicht ankommt, zusätzlich
+`http://localhost:3000/auth/callback` im Dashboard unter
+Authentication → URL Configuration als Redirect-URL ergänzen.
+Zum lokalen Testen des Cloudflare-Builds: `pnpm preview`.
+
 ## Interessen-Vorschläge (Moderation)
 
 Fehlt ein Interesse im Katalog, können Nutzer es auf der Interessen-Seite
@@ -49,7 +89,8 @@ Fehlt ein Interesse im Katalog, können Nutzer es auf der Interessen-Seite
 korrigieren (`set_interest_suggestion_category`).
 
 Admins werden in `public.app_admins` verwaltet (`madlick71@gmail.com` ist
-eingetragen); weitere Konten per [snippets/make_admin.sql](./supabase/snippets/make_admin.sql).
+eingetragen); weitere Konten per
+[snippets/make_admin.sql](./supabase/snippets/make_admin.sql).
 
 ## Stripe einrichten (Test-Modus)
 
@@ -86,8 +127,9 @@ Testkarte: `4242 4242 4242 4242`, beliebiges Zukunftsdatum, CVC 123.
    `NEXT_PUBLIC_*`-Variablen werden zur Build-Zeit aus `web/.env.local`
    eingebrannt (Cloud-Zugangsdaten des Supabase-Projekts, Vorlage:
    `web/.env.local.example`). Runtime-Secrets einmalig pro Worker setzen:
-   `npx wrangler secret put GOOGLE_PLACES_API_KEY`. Alle Nutzerdaten bleiben
-   in Frankfurt; Cloudflare sieht nur anonyme UI-Requests.
+   `npx wrangler secret put GOOGLE_PLACES_API_KEY`. Alle Nutzerdaten bleiben in
+   Frankfurt; Cloudflare sieht nur anonyme UI-Requests.
+
 5. Mobile: `flutter build appbundle` / `flutter build ipa` mit
    `--dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...`
 
@@ -99,11 +141,12 @@ Design-Vorschläge in `web/design/proposals/`. Akzentfarbe: `#FF5A36` (Koralle).
 **Google Search Console:** Inhaberverifikation als Domain-Property über den
 DNS-TXT-Record `google-site-verification=…` (in Cloudflare gepflegt); der
 zugehörige Meta-Tag liegt als Fallback in `web/src/app/layout.tsx`
-(`metadata.verification.google`). `sitemap.xml` und `robots.txt` erzeugt
-Next.js automatisch aus `web/src/app/sitemap.ts` bzw. `robots.ts` — in der
-Search Console genügt die Eingabe von `sitemap.xml` unter *Sitemaps*.
+(`metadata.verification.google`). `sitemap.xml` und `robots.txt` erzeugt Next.js
+automatisch aus `web/src/app/sitemap.ts` bzw. `robots.ts` — in der Search
+Console genügt die Eingabe von `sitemap.xml` unter _Sitemaps_.
 
-Später lässt sich die [Supabase-GitHub-Integration](https://supabase.com/docs/guides/deployment/branching/github-integration)
+Später lässt sich die
+[Supabase-GitHub-Integration](https://supabase.com/docs/guides/deployment/branching/github-integration)
 aktivieren (Preview-Branches sind ein Pro-Feature); die Struktur im Repo ist
 dafür bereits vorbereitet.
 
@@ -112,5 +155,6 @@ dafür bereits vorbereitet.
 - [ ] Kontaktanfragen-UI (Tabelle + RLS stehen)
 - [ ] Events/Treffen mit Geo (Tabelle steht; PostGIS später)
 - [ ] Profilseite mit Region/Persönlichem
-- [x] Interessen-Taxonomie gemeinsam erweitern (Vorschlags-Workflow inkl. Moderation, s. o.)
+- [x] Interessen-Taxonomie gemeinsam erweitern (Vorschlags-Workflow inkl.
+      Moderation, s. o.)
 - [ ] App Store / Play Store: Mobile-Abos prüfen (Zahlung läuft übers Web)
