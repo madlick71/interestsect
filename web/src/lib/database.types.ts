@@ -34,6 +34,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_requests: {
         Row: {
           created_at: string
@@ -153,6 +168,71 @@ export type Database = {
         }
         Relationships: []
       }
+      interest_suggestions: {
+        Row: {
+          category_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          interest_id: string | null
+          name_de: string
+          status: string
+          suggested_by: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          interest_id?: string | null
+          name_de: string
+          status?: string
+          suggested_by: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          interest_id?: string | null
+          name_de?: string
+          status?: string
+          suggested_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interest_suggestions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "interest_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interest_suggestions_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interest_suggestions_interest_id_fkey"
+            columns: ["interest_id"]
+            isOneToOne: false
+            referencedRelation: "interests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interest_suggestions_suggested_by_fkey"
+            columns: ["suggested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interests: {
         Row: {
           category_id: string
@@ -190,6 +270,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           bio: string | null
           created_at: string
           display_name: string
@@ -201,6 +282,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name: string
@@ -212,6 +294,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string
@@ -288,6 +371,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_interest_suggestion: {
+        Args: { p_suggestion_id: string }
+        Returns: string
+      }
       find_matches: {
         Args: {
           match_region?: string
@@ -295,6 +382,7 @@ export type Database = {
           min_common?: number
         }
         Returns: {
+          avatar_url: string | null
           bio: string
           common_interests: number
           display_name: string
@@ -306,6 +394,14 @@ export type Database = {
         }[]
       }
       has_active_entitlement: { Args: never; Returns: boolean }
+      reject_interest_suggestion: {
+        Args: { p_suggestion_id: string }
+        Returns: undefined
+      }
+      set_interest_suggestion_category: {
+        Args: { p_category_id: string; p_suggestion_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

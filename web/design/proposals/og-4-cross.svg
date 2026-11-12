@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" font-family="Mulish, Arial, Helvetica, sans-serif">
+  <style>@import url('https://fonts.googleapis.com/css2?family=Mulish:wght@400;800&amp;display=swap');</style>
+  <defs>
+    <g id="glyph">
+      <rect x="88" y="216" width="336" height="80" rx="40" fill="#171717"/>
+      <rect x="216" y="88" width="80" height="336" rx="40" fill="#171717"/>
+      <circle cx="256" cy="256" r="44" fill="#FFFFFF"/>
+      <circle cx="256" cy="256" r="26" fill="#FF5A36"/>
+    </g>
+  </defs>
+  <rect width="1200" height="630" fill="#0A0A0A"/>
+  <use href="#glyph" transform="translate(740,40) scale(1.55)" opacity="0.13"/>
+  <use href="#glyph" transform="translate(96,84) scale(0.32)"/>
+  <text x="94" y="330" fill="#FFFFFF" font-size="96" font-weight="800" letter-spacing="-2">InterestSect</text>
+  <rect x="100" y="356" width="150" height="10" rx="5" fill="#FF5A36"/>
+  <text x="96" y="440" fill="#d4d4d8" font-size="40" font-weight="400">Das soziale Netzwerk für echte Treffen.</text>
+  <text x="96" y="492" fill="#a1a1aa" font-size="34" font-weight="400">Gemeinsame Interessen statt Newsfeed. Keine Likes. Keine Werbung.</text>
+  <text x="96" y="566" fill="#71717a" font-size="26" font-weight="600" letter-spacing="1">interestsect.com</text>
+</svg>

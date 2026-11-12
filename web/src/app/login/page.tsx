@@ -14,7 +14,9 @@ export default function LoginPage() {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${location.origin}/auth/callback` },
+      options: {
+        emailRedirectTo: `${location.origin}/auth/callback`,
+      },
     });
     if (error) {
       setError(error.message);
@@ -26,10 +28,13 @@ export default function LoginPage() {
   if (sent) {
     return (
       <main className="mx-auto max-w-md px-4 py-16">
-        <h1 className="text-2xl font-bold">Prüfe dein Postfach</h1>
+        <h1 className="text-2xl font-bold">
+          Prüfe dein Postfach
+        </h1>
         <p className="mt-4 text-gray-600">
-          Wir haben dir einen Anmeldelink geschickt. Deine ersten 30 Tage
-          sind kostenlos.
+          Wir haben dir einen Anmeldelink geschickt. Bitte
+          überprüfe dein E-Mail-Postfach und klicke auf den Link,
+          um dich anzumelden.
         </p>
       </main>
     );
@@ -41,7 +46,10 @@ export default function LoginPage() {
       <p className="mt-2 text-sm text-gray-600">
         Ohne Passwort: Wir schicken dir einen Link per E-Mail.
       </p>
-      <form onSubmit={handleMagicLink} className="mt-6 space-y-4">
+      <form
+        onSubmit={handleMagicLink}
+        className="mt-6 space-y-4"
+      >
         <input
           type="email"
           required
@@ -50,7 +58,9 @@ export default function LoginPage() {
           placeholder="du@example.org"
           className="w-full rounded border px-3 py-2"
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-600">{error}</p>
+        )}
         <button
           type="submit"
           className="w-full rounded bg-black px-4 py-2 font-medium text-white hover:bg-gray-800"

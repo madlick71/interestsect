@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Vorschlag 1: Schnittmenge — zwei Kreise, die Linse in Weiß -->
+  <defs>
+    <clipPath id="lens">
+      <circle cx="316" cy="256" r="150"/>
+    </clipPath>
+  </defs>
+  <circle cx="196" cy="256" r="150" fill="#171717"/>
+  <circle cx="316" cy="256" r="150" fill="#FF5A36"/>
+  <g clip-path="url(#lens)">
+    <circle cx="196" cy="256" r="150" fill="#FFFFFF"/>
+  </g>
+</svg>

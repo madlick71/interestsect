@@ -1,5 +1,5 @@
 -- Lokaler Rauchtest: Trigger, Trial, Match-RPC, Entitlement
--- Ausführen: supabase db sql --local -f supabase/tests/smoke_test.sql
+-- Ausführen: docker exec -i supabase_db_interestsect psql -U postgres -d postgres < supabase/tests/smoke_test.sql
 -- (Nur für die lokale Entwicklung; legt Testnutzer an.)
 
 begin;

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InterestSect — Favicon-/OG-Vorschläge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 40px 24px 80px;
+    font-family: 'Mulish', system-ui, sans-serif;
+    background: #f4f4f5; color: #171717;
+  }
+  h1 { font-size: 28px; margin: 0 0 6px; }
+  .intro { color: #52525b; max-width: 720px; margin: 0 0 40px; line-height: 1.5; }
+  .proposal {
+    background: #fff; border-radius: 20px; padding: 28px;
+    margin-bottom: 28px; max-width: 1080px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  }
+  .proposal h2 { font-size: 20px; margin: 0; }
+  .proposal .rational { color: #71717a; margin: 4px 0 20px; font-size: 14px; }
+  .row { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+
+  .tile {
+    width: 128px; height: 128px; border-radius: 28px;
+    display: grid; place-items: center; flex: none;
+  }
+  .tile img { width: 84px; height: 84px; }
+  .tile.light { background: #fff; border: 1px solid #e4e4e7; }
+  .tile.dark { background: #171717; }
+  .tile.accent { background: #FF5A36; }
+
+  .sizes { display: flex; align-items: flex-end; gap: 18px; }
+  .sizes figure { margin: 0; text-align: center; }
+  .sizes figcaption { font-size: 11px; color: #a1a1aa; margin-top: 6px; }
+  .checker {
+    background-image:
+      linear-gradient(45deg, #e9e9ec 25%, transparent 25%),
+      linear-gradient(-45deg, #e9e9ec 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #e9e9ec 75%),
+      linear-gradient(-45deg, transparent 75%, #e9e9ec 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+    border-radius: 6px;
+  }
+
+  .tabs { display: flex; flex-direction: column; gap: 10px; }
+  .tabstrip { display: flex; align-items: flex-end; padding: 6px 8px 0; border-radius: 10px 10px 0 0; }
+  .tabstrip.light { background: #dee1e6; }
+  .tabstrip.dark { background: #202124; }
+  .tab {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 9px 9px 0 0; font-size: 12px;
+    max-width: 200px; white-space: nowrap; overflow: hidden;
+  }
+  .tabstrip.light .tab { background: #fff; color: #3c4043; }
+  .tabstrip.dark .tab { background: #35363a; color: #e8eaed; }
+  .tab img { width: 16px; height: 16px; flex: none; }
+
+  .wa {
+    background: #0b141a; border-radius: 18px; padding: 18px;
+    width: 380px; flex: none;
+  }
+  .wa .chat { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .wa .bubble {
+    background: #005c4b; color: #e9edef;
+    border-radius: 12px 4px 12px 12px; padding: 5px;
+    max-width: 330px; font-size: 13.5px; box-shadow: 0 1px 1px rgba(0,0,0,.2);
+  }
+  .wa .bubble img.og { width: 320px; display: block; border-radius: 8px; }
+  .wa .meta { padding: 7px 6px 2px; }
+  .wa .domain { color: #8696a0; font-size: 12px; }
+  .wa .title { color: #e9edef; font-weight: 600; font-size: 14px; margin: 3px 0; }
+  .wa .desc { color: #8696a0; font-size: 13px; line-height: 1.35; }
+  .wa .msg { padding: 4px 6px 6px; }
+  .wa .time { color: rgba(233,237,239,.6); font-size: 11px; float: right; margin-left: 12px; }
+
+  .swatches { display: flex; gap: 10px; margin-top: 18px; align-items: center; }
+  .swatches span { font-size: 12px; color: #71717a; }
+  .sw { width: 26px; height: 26px; border-radius: 8px; border: 1px solid #e4e4e7; }
+</style>
+</head>
+<body>
+
+<h1>InterestSect — Favicon &amp; Share-Bild</h1>
+<p class="intro">
+  WhatsApp zeigt beim Teilen <strong>nicht das Favicon</strong>, sondern das
+  <strong>Open-Graph-Bild</strong> (og:image, 1200×630). Unten je Vorschlag:
+  Icon als Kachel (hell/dunkel/Akzent), in Favicon-Größen (48/32/16 px),
+  als Browser-Tab (hell/dunkel) und die WhatsApp-Linkvorschau mit passendem OG-Bild.
+  Akzentfarbe hier: Koralle <em>#FF5A36</em> — auf Anfrage auch in Smaragd oder Rein-Violett.
+</p>
+
+<!-- ============ VORSCHLAG 1 ============ -->
+<section class="proposal">
+  <h2>1 · Schnittmenge <span style="color:#a1a1aa;font-weight:400">(Name ist Programm)</span></h2>
+  <p class="rational">Zwei Kreise = zwei Menschen/Interessen. Die weiße Linse ist die Schnittmenge — exakt das, was „InterestSect" bedeutet. Funktional, leicht merklich, funktioniert bis 16 px.</p>
+  <div class="row">
+    <div class="tile light"><img src="icon-1-venn.svg" alt=""></div>
+    <div class="tile dark"><img src="icon-1-venn.svg" alt=""></div>
+    <div class="tile accent"><img src="icon-1-venn.svg" alt=""></div>
+    <div class="sizes">
+      <figure><div class="checker"><img src="icon-1-venn.svg" width="48" height="48" alt=""></div><figcaption>48 px</figcaption></figure>
+      <figure><div class="checker"><img src="icon-1-venn.svg" width="32" height="32" alt=""></div><figcaption>32 px</figcaption></figure>
+      <figure><div class="checker"><img src="icon-1-venn.svg" width="16" height="16" alt=""></div><figcaption>16 px</figcaption></figure>
+    </div>
+    <div class="tabs">
+      <div class="tabstrip light"><div class="tab"><img src="icon-1-venn.svg" alt="">InterestSect — Treffen mit …</div></div>
+      <div class="tabstrip dark"><div class="tab"><img src="icon-1-venn.svg" alt="">InterestSect — Treffen mit …</div></div>
+    </div>
+    <div class="wa">
+      <div class="chat">
+        <div class="bubble">
+          <img class="og" src="og-1-venn.svg" alt="">
+          <div class="meta">
+            <div class="domain">interestsect.com</div>
+            <div class="title">InterestSect</div>
+            <div class="desc">Das soziale Netzwerk für echte Treffen — gemeinsame Interessen statt Newsfeed.</div>
+          </div>
+          <div class="msg">Schau mal, danach suchen wir gemeinsam was fürs Wochenende 🙌<span class="time">07:31 ✓✓</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VORSCHLAG 2 ============ -->
+<section class="proposal">
+  <h2>2 · Treffpunkt <span style="color:#a1a1aa;font-weight:400">(Pin + Schnittmenge)</span></h2>
+  <p class="rational">Map-Pin mit kleiner Schnittmenge inside: verbindet „echte Treffen" und „gemeinsame Interessen" — passt zur Karten-Funktion der App. Innenleben verschwindet unter 32 px, Pin bleibt stark.</p>
+  <div class="row">
+    <div class="tile light"><img src="icon-2-pin.svg" alt=""></div>
+    <div class="tile dark"><img src="icon-2-pin.svg" alt=""></div>
+    <div class="tile accent"><img src="icon-2-pin.svg" alt=""></div>
+    <div class="sizes">
+      <figure><div class="checker"><img src="icon-2-pin.svg" width="48" height="48" alt=""></div><figcaption>48 px</figcaption></figure>
+      <figure><div class="checker"><img src="icon-2-pin.svg" width="32" height="32" alt=""></div><figcaption>32 px</figcaption></figure>
+      <figure><div class="checker"><img src="icon-2-pin.svg" width="16" height="16" alt=""></div><figcaption>16 px</figcaption></figure>
+    </div>
+    <div class="tabs">
+      <div class="tabstrip light"><div class="tab"><img src="icon-2-pin.svg" alt="">InterestSect — Treffen mit …</div></div>
+      <div class="tabstrip dark"><div class="tab"><img src="icon-2-pin.svg" alt="">InterestSect — Treffen mit …</div></div>
+    </div>
+    <div class="wa">
+      <div class="chat">
+        <div class="bubble">
+          <img class="og" src="og-2-pin.svg" alt="">
+          <div class="meta">
+            <div class="domain">interestsect.com</div>
+            <div class="title">InterestSect</div>
+            <div class="desc">Das soziale Netzwerk für echte Treffen — gemeinsame Interessen statt Newsfeed.</div>
+          </div>
+          <div class="msg">Schau mal, danach suchen wir gemeinsam was fürs Wochenende 🙌<span class="time">07:31 ✓✓</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VORSCHLAG 3 ============ -->
+<section class="proposal">
+  <h2>3 · Dialog <span style="color:#a1a1aa;font-weight:400">(Kontaktaufnahme)</span></h2>
+  <p class="rational">Zwei überlappende Sprechblasen: die Kontaktaufnahme, der Kern des Produkts. Warm und einladend — aber thematisch näher an Messenger-Apps als am Interessen-Fokus.</p>
+  <div class="row">
+    <div class="tile light"><img src="icon-3-dialog.svg" alt=""></div>
+    <div class="tile dark"><img src="icon-3-dialog.svg" alt=""></div>
+    <div class="tile accent"><img src="icon-3-dialog.svg" alt=""></div>
+    <div class="sizes">
+      <figure><div class="checker"><img src="icon-3-dialog.svg" width="48" height="48" alt=""></div><figcaption>48 px</figcaption></figure>
+      <figure><div class="checker"><img src="icon-3-dialog.svg" width="32" height="32" alt=""></div><figcaption>32 px</figcaption></figure>
+      <figure><div class="checker"><img src="icon-3-dialog.svg" width="16" height="16" alt=""></div><figcaption>16 px</figcaption></figure>
+    </div>
+    <div class="tabs">
+      <div class="tabstrip light"><div class="tab"><img src="icon-3-dialog.svg" alt="">InterestSect — Treffen mit …</div></div>
+      <div class="tabstrip dark"><div class="tab"><img src="icon-3-dialog.svg" alt="">InterestSect — Treffen mit …</div></div>
+    </div>
+    <div class="wa">
+      <div class="chat">
+        <div class="bubble">
+          <img class="og" src="og-3-dialog.svg" alt="">
+          <div class="meta">
+            <div class="domain">interestsect.com</div>
+            <div class="title">InterestSect</div>
+            <div class="desc">Das soziale Netzwerk für echte Treffen — gemeinsame Interessen statt Newsfeed.</div>
+          </div>
+          <div class="msg">Schau mal, danach suchen wir gemeinsam was fürs Wochenende 🙌<span class="time">07:31 ✓✓</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VORSCHLAG 4 ============ -->
+<section class="proposal">
+  <h2>4 · Kreuzung <span style="color:#a1a1aa;font-weight:400">(Treffpunkt, abstrakt)</span></h2>
+  <p class="rational">Zwei Balken kreuzen sich, im Zentrum der Akzentpunkt: „Wir treffen uns hier." Reduzierteste Form — maximale Lesbarkeit bis 16 px, aber weniger spezifisch als 1 und 2.</p>
+  <div class="row">
+    <div class="tile light"><img src="icon-4-cross.svg" alt=""></div>
+    <div class="tile dark"><img src="icon-4-cross.svg" alt=""></div>
+    <div class="tile accent"><img src="icon-4-cross.svg" alt=""></div>
+    <div class="sizes">
+      <figure><div class="checker"><img src="icon-4-cross.svg" width="48" height="48" alt=""></div><figcaption>48 px</figcaption></figure>
+      <figure><div class="checker"><img src="icon-4-cross.svg" width="32" height="32" alt=""></div><figcaption>32 px</figcaption></figure>
+      <figure><div class="checker"><img src="icon-4-cross.svg" width="16" height="16" alt=""></div><figcaption>16 px</figcaption></figure>
+    </div>
+    <div class="tabs">
+      <div class="tabstrip light"><div class="tab"><img src="icon-4-cross.svg" alt="">InterestSect — Treffen mit …</div></div>
+      <div class="tabstrip dark"><div class="tab"><img src="icon-4-cross.svg" alt="">InterestSect — Treffen mit …</div></div>
+    </div>
+    <div class="wa">
+      <div class="chat">
+        <div class="bubble">
+          <img class="og" src="og-4-cross.svg" alt="">
+          <div class="meta">
+            <div class="domain">interestsect.com</div>
+            <div class="title">InterestSect</div>
+            <div class="desc">Das soziale Netzwerk für echte Treffen — gemeinsame Interessen statt Newsfeed.</div>
+          </div>
+          <div class="msg">Schau mal, danach suchen wir gemeinsam was fürs Wochenende 🙌<span class="time">07:31 ✓✓</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="swatches">
+    <span>Akzent-Alternativen:</span>
+    <div class="sw" style="background:#FF5A36" title="Koralle #FF5A36"></div>
+    <div class="sw" style="background:#10B981" title="Smaragd #10B981"></div>
+    <div class="sw" style="background:#7C3AED" title="Violett #7C3AED"></div>
+    <div class="sw" style="background:#F59E0B" title="Bernstein #F59E0B"></div>
+  </div>
+</section>
+
+</body>
+</html>

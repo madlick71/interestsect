@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -9,6 +10,7 @@ export type MapMatch = {
   display_name: string;
   region: string | null;
   bio: string | null;
+  avatar_url: string | null;
   lat: number | null;
   lng: number | null;
   common_interests: number;
@@ -45,6 +47,8 @@ export default function MatchesMap({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markers = useRef<maplibregl.Marker[]>([]);
+  // SPA-Navigation für die klickbaren Namenslabels / Popup-Links.
+  const router = useRouter();
 
   const validMatches = matches.filter(
     (m) => m.lat != null && m.lng != null,
@@ -195,26 +199,80 @@ export default function MatchesMap({
       const { lat, lng, matches: group } = cluster;
       const multi = group.length > 1;
 
+      // Wrapper keeps the pin centered on the coordinate. MapLibre styles
+      // the marker element via its .maplibregl-marker class (position:
+      // absolute) and centers it with translate(-50%,-50%) — therefore the
+      // element gets explicit pin dimensions and the labels hang absolutely
+      // below it. Position/display MUST NOT be overridden here: a block div
+      // stretches to container width and the pin then lands half a map
+      // width away from its coordinate.
       const el = document.createElement("div");
-      el.style.width = "24px";
-      el.style.height = "24px";
-      el.style.borderRadius = "50%";
-      el.style.backgroundColor = "#171717";
-      el.style.border = "3px solid white";
-      el.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+      el.style.width = multi ? "28px" : "24px";
+      el.style.height = multi ? "28px" : "24px";
       el.style.cursor = "pointer";
+
+      const pin = document.createElement("div");
+      pin.style.width = "100%";
+      pin.style.height = "100%";
+      pin.style.borderRadius = "50%";
+      pin.style.backgroundColor = "#171717";
+      pin.style.border = "3px solid white";
+      pin.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
       if (multi) {
         // Cluster badge: show the number of people at this spot.
-        el.style.display = "flex";
-        el.style.alignItems = "center";
-        el.style.justifyContent = "center";
-        el.style.fontSize = "10px";
-        el.style.fontWeight = "700";
-        el.style.color = "white";
-        el.style.width = "28px";
-        el.style.height = "28px";
-        el.textContent = String(group.length);
+        pin.style.display = "flex";
+        pin.style.alignItems = "center";
+        pin.style.justifyContent = "center";
+        pin.style.fontSize = "10px";
+        pin.style.fontWeight = "700";
+        pin.style.color = "white";
+        pin.textContent = String(group.length);
       }
+      el.appendChild(pin);
+
+      // Clickable name label per person, stacked under the pin. Capped so
+      // big clusters stay readable; the rest is reachable via the popup.
+      // stopPropagation keeps the marker's map-click popup toggle away;
+      // without it (the "+N" chip) the click falls through to the popup.
+      const LABEL_LIMIT = 3;
+      const labelWrap = document.createElement("div");
+      labelWrap.style.cssText =
+        "position:absolute; top:calc(100% + 3px); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none;";
+      const labelCss =
+        "pointer-events:auto; display:inline-block; max-width:9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:1px 7px; border-radius:9999px; background:rgba(255,255,255,0.95); border:1px solid #d1d5db; box-shadow:0 1px 3px rgba(0,0,0,0.25); color:#111827; font-size:11px; font-weight:600; line-height:1.5; text-decoration:none; cursor:pointer;";
+      for (const m of group.slice(0, LABEL_LIMIT)) {
+        const label = document.createElement("a");
+        label.href = `/profile/${m.user_id}`;
+        label.textContent = m.display_name;
+        label.title = m.display_name;
+        label.style.cssText = labelCss;
+        label.addEventListener("click", (e) => {
+          e.stopPropagation();
+          // Modifier-Klicks (neuer Tab etc.) dem Browser überlassen.
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          e.preventDefault();
+          router.push(`/profile/${m.user_id}`);
+        });
+        label.addEventListener("mouseenter", () => {
+          label.style.backgroundColor = "#111827";
+          label.style.borderColor = "#111827";
+          label.style.color = "#ffffff";
+        });
+        label.addEventListener("mouseleave", () => {
+          label.style.backgroundColor = "rgba(255,255,255,0.95)";
+          label.style.borderColor = "#d1d5db";
+          label.style.color = "#111827";
+        });
+        labelWrap.appendChild(label);
+      }
+      if (group.length > LABEL_LIMIT) {
+        const more = document.createElement("span");
+        more.textContent = `+${group.length - LABEL_LIMIT} weitere`;
+        more.style.cssText =
+          "pointer-events:auto; padding:1px 7px; border-radius:9999px; background:rgba(255,255,255,0.85); border:1px solid #e5e7eb; color:#6b7280; font-size:10px; font-weight:600; line-height:1.5; cursor:pointer;";
+        labelWrap.appendChild(more);
+      }
+      el.appendChild(labelWrap);
 
       // Renders the popup content for one person of the cluster. The outer
       // div carries data-match-body so the pager can swap it in place.
@@ -226,14 +284,21 @@ export default function MatchesMap({
               `<span style="display:inline-block; margin:2px 4px 2px 0; padding:2px 8px; border-radius:9999px; background:#f3f4f6; color:#374151; font-size:11px;">${escapeHtml(name)}</span>`,
           )
           .join("");
+        const avatar = m.avatar_url
+          ? `<img src="${escapeHtml(m.avatar_url)}" alt="" style="width:34px; height:34px; border-radius:50%; object-fit:cover; flex-shrink:0;" referrerPolicy="no-referrer" />`
+          : `<span style="width:34px; height:34px; border-radius:50%; object-fit:cover; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; background:#e5e7eb; color:#4b5563; font-size:15px; font-weight:600;">${escapeHtml((m.display_name ?? "").trim().charAt(0).toUpperCase() || "?")}</span>`;
         return `
           <div data-match-body style="min-width: 200px; max-width: 260px;">
-            <h3 style="margin: 0 26px 2px 0; font-size: 14px; font-weight: 600; color: #111827;">${escapeHtml(m.display_name)}</h3>
-            ${m.region ? `<p style="margin: 0; font-size: 12px; color: #6b7280;">${escapeHtml(m.region)}</p>` : ""}
+            <div style="display:flex; align-items:center; gap:8px;">
+              ${avatar}
+              <h3 style="margin: 0 26px 0 0; font-size: 14px; font-weight: 600; color: #111827;">${escapeHtml(m.display_name)}</h3>
+            </div>
+            ${m.region ? `<p style="margin: 2px 0 0 42px; font-size: 12px; color: #6b7280;">${escapeHtml(m.region)}</p>` : ""}
             <p style="margin: 6px 0 4px 0; font-size: 12px; font-weight: 600; color: #111827;">
               ${m.common_interests} gemeinsame Interesse${m.common_interests === 1 ? "" : "n"}
             </p>
             <div style="margin: 2px 0 4px 0;">${chips}</div>
+            <a href="/profile/${m.user_id}" data-profile-link style="display:inline-block; margin-top:4px; font-size:12px; font-weight:600; color:#111827; text-decoration:underline;">Profil ansehen →</a>
           </div>
         `;
       };
@@ -242,67 +307,79 @@ export default function MatchesMap({
         renderMatch(group[0]),
       );
 
-      if (multi) {
-        // Pager row above the match body: ‹ 2/3 ›. The initial HTML from
-        // setHTML already contains data-match-body; the open handler only
-        // prepends the pager and wires the buttons.
-        popup.on("open", () => {
-          const content = popup
-            .getElement()
-            ?.querySelector<HTMLElement>(".maplibregl-popup-content");
-          if (!content) return;
-          // Guard against double-init (popup "open" can fire again).
-          if (content.querySelector("[data-pager]")) return;
-          let idx = 0;
+      popup.on("open", () => {
+        const content = popup
+          .getElement()
+          ?.querySelector<HTMLElement>(".maplibregl-popup-content");
+        if (!content) return;
 
-          const pager = document.createElement("div");
-          pager.setAttribute("data-pager", "");
-          pager.style.cssText =
-            "display:flex; align-items:center; justify-content:flex-start; gap:8px; margin:0 0 6px 0; padding-right:24px;";
-          pager.innerHTML = `
-            <button type="button" data-pager="prev" aria-label="Vorherige Person" style="width:22px;height:22px;border:none;border-radius:6px;background:#e5e7eb;color:#111827;cursor:pointer;font-size:14px;line-height:1;">‹</button>
-            <span data-pager-count style="font-size:11px;color:#6b7280;"></span>
-            <button type="button" data-pager="next" aria-label="Nächste Person" style="width:22px;height:22px;border:none;border-radius:6px;background:#e5e7eb;color:#111827;cursor:pointer;font-size:14px;line-height:1;">›</button>
-          `;
-          content.prepend(pager);
+        // "Profil ansehen →" im Popup: SPA-Navigation statt Reload.
+        // Einmalig binden — "open" feuert bei jedem Öffnen erneut.
+        if (!content.dataset.profileNav) {
+          content.dataset.profileNav = "1";
+          content.addEventListener("click", (e) => {
+            const link = (e.target as HTMLElement).closest(
+              "a[data-profile-link]",
+            );
+            if (!link) return;
+            e.preventDefault();
+            e.stopPropagation();
+            router.push(link.getAttribute("href") ?? "/map");
+          });
+        }
 
-          const label = pager.querySelector("[data-pager-count]")!;
-          const body = () =>
-            content.querySelector<HTMLElement>("[data-match-body]")!;
+        if (!multi) return;
+        // Guard against double-init (popup "open" can fire again).
+        if (content.querySelector("[data-pager]")) return;
+        let idx = 0;
 
-          const swapBody = (m: MapMatch) => {
-            const wrapper = document.createElement("div");
-            wrapper.innerHTML = renderMatch(m);
-            const fresh = wrapper.firstElementChild as HTMLElement;
-            body().replaceWith(fresh);
-          };
+        const pager = document.createElement("div");
+        pager.setAttribute("data-pager", "");
+        pager.style.cssText =
+          "display:flex; align-items:center; justify-content:flex-start; gap:8px; margin:0 0 6px 0; padding-right:24px;";
+        pager.innerHTML = `
+          <button type="button" data-pager="prev" aria-label="Vorherige Person" style="width:22px;height:22px;border:none;border-radius:6px;background:#e5e7eb;color:#111827;cursor:pointer;font-size:14px;line-height:1;">‹</button>
+          <span data-pager-count style="font-size:11px;color:#6b7280;"></span>
+          <button type="button" data-pager="next" aria-label="Nächste Person" style="width:22px;height:22px;border:none;border-radius:6px;background:#e5e7eb;color:#111827;cursor:pointer;font-size:14px;line-height:1;">›</button>
+        `;
+        content.prepend(pager);
 
-          const render = () => {
-            const m = group[idx];
-            label.textContent = `${idx + 1}/${group.length}`;
-            swapBody(m);
-          };
+        const label = pager.querySelector("[data-pager-count]")!;
+        const body = () =>
+          content.querySelector<HTMLElement>("[data-match-body]")!;
 
-          pager
-            .querySelector('[data-pager="prev"]')
-            ?.addEventListener("click", (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              idx = (idx - 1 + group.length) % group.length;
-              render();
-            });
-          pager
-            .querySelector('[data-pager="next"]')
-            ?.addEventListener("click", (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              idx = (idx + 1) % group.length;
-              render();
-            });
+        const swapBody = (m: MapMatch) => {
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = renderMatch(m);
+          const fresh = wrapper.firstElementChild as HTMLElement;
+          body().replaceWith(fresh);
+        };
 
-          render();
-        });
-      }
+        const render = () => {
+          const m = group[idx];
+          label.textContent = `${idx + 1}/${group.length}`;
+          swapBody(m);
+        };
+
+        pager
+          .querySelector('[data-pager="prev"]')
+          ?.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            idx = (idx - 1 + group.length) % group.length;
+            render();
+          });
+        pager
+          .querySelector('[data-pager="next"]')
+          ?.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            idx = (idx + 1) % group.length;
+            render();
+          });
+
+        render();
+      });
 
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([lng, lat])
@@ -315,9 +392,10 @@ export default function MatchesMap({
 
     try {
       // Nur automatisch einpassen, wenn keine Ansicht per URL vorgegeben ist.
+      // Padding groß genug für Pin + Namenslabels unterhalb des Pins.
       if (!bounds.isEmpty() && !hasInitialView) {
         map.current.fitBounds(bounds, {
-          padding: 50,
+          padding: 90,
           maxZoom: 13,
         });
       }

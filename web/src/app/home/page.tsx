@@ -4,12 +4,15 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MyInterests from "./my-interests";
 import SiteNav from "@/app/components/SiteNav";
+import Avatar from "@/app/components/Avatar";
+import { resolveAvatarUrl, signAvatarUrls } from "@/lib/avatars";
 
 type Match = {
   user_id: string;
   display_name: string;
   region: string | null;
   bio: string | null;
+  avatar_url: string | null;
   common_interests: number;
   shared_interests: string[];
 };
@@ -34,6 +37,11 @@ async function HomeList() {
     min_common: 2,
     max_results: 20,
   });
+  // Privater Bucket: Avatar-Pfade einmal im Batch zu Signed URLs signieren.
+  const avatarUrls = await signAvatarUrls(
+    supabase,
+    (matches ?? []).map((m: Match) => m.avatar_url),
+  );
 
   if (error) {
     return (
@@ -67,13 +75,24 @@ async function HomeList() {
       <div className="mt-6 space-y-4">
       {(matches as Match[]).map((m) => (
         <article key={m.user_id} className="rounded-lg border p-5">
-          <div className="flex items-baseline justify-between">
-            <h2 className="font-semibold">{m.display_name}</h2>
-            <span className="text-sm text-gray-500">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Avatar
+                url={resolveAvatarUrl(avatarUrls, m.avatar_url)}
+                name={m.display_name}
+                size={44}
+              />
+              <div>
+                <h2 className="font-semibold">{m.display_name}</h2>
+                {m.region && (
+                  <p className="mt-0.5 text-sm text-gray-500">{m.region}</p>
+                )}
+              </div>
+            </div>
+            <span className="shrink-0 pt-1 text-sm text-gray-500">
               {m.common_interests} gemeinsame Interessen
             </span>
           </div>
-          {m.region && <p className="mt-1 text-sm text-gray-500">{m.region}</p>}
           {m.bio && <p className="mt-2 text-sm">{m.bio}</p>}
           <div className="mt-3 flex flex-wrap gap-2">
             {m.shared_interests.slice(0, 6).map((name) => (

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import LocationInput from "@/app/components/LocationInput";
 import SiteNav from "@/app/components/SiteNav";
+import Avatar from "@/app/components/Avatar";
 
 type ProfileData = {
   display_name: string;
@@ -12,7 +13,36 @@ type ProfileData = {
   lat: number | null;
   lng: number | null;
   bio: string;
+  avatarUrl: string | null;
 };
+
+// Quadratischer Mittelkreis-Crop + Downscale im Browser: kleine Dateien,
+// immer quadratisch → sieht als rundes Profilbild sauber aus.
+const AVATAR_SIZE = 512;
+const AVATAR_MAX_INPUT_BYTES = 10 * 1024 * 1024;
+const AVATAR_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+async function toSquareJpeg(file: File, size: number): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const side = Math.min(bitmap.width, bitmap.height);
+  const sx = (bitmap.width - side) / 2;
+  const sy = (bitmap.height - side) / 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Bildbearbeitung im Browser nicht verfügbar.");
+  ctx.drawImage(bitmap, sx, sy, side, side, 0, 0, size, size);
+  bitmap.close();
+  return new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob(
+      (blob) =>
+        blob ? resolve(blob) : reject(new Error("Bild konnte nicht verarbeitet werden.")),
+      "image/jpeg",
+      0.85,
+    ),
+  );
+}
 
 type SubscriptionInfo = {
   status: string;
@@ -46,6 +76,8 @@ export default function ProfileClient({
   const [regionLat, setRegionLat] = useState<number | null>(initial.lat);
   const [regionLng, setRegionLng] = useState<number | null>(initial.lng);
   const [bio, setBio] = useState(initial.bio);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initial.avatarUrl);
+  const [avatarBusy, setAvatarBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,6 +99,69 @@ export default function ProfileClient({
       setError(updateError.message);
     }
     setSaving(false);
+  }
+
+  // Profilbild: quadratisch croppen, komprimieren, nach
+  // avatars/<user_id>/avatar.jpg hochladen (Upsert) und den Storage-Pfad
+  // im Profil speichern (Bucket ist privat, gerendert wird eine Signed
+  // URL). Wirkt sofort.
+  async function uploadAvatar(file: File) {
+    setError(null);
+    if (!AVATAR_MIME_TYPES.includes(file.type)) {
+      setError("Bitte eine Bild-Datei wählen (JPEG, PNG oder WebP).");
+      return;
+    }
+    if (file.size > AVATAR_MAX_INPUT_BYTES) {
+      setError("Das Bild ist zu groß (max. 10 MB vor der Komprimierung).");
+      return;
+    }
+    setAvatarBusy(true);
+    try {
+      const jpeg = await toSquareJpeg(file, AVATAR_SIZE);
+      const supabase = createClient();
+      const path = `${userId}/avatar.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(path, jpeg, { contentType: "image/jpeg", upsert: true });
+      if (uploadError) throw new Error(uploadError.message);
+      const { error: dbError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: path })
+        .eq("id", userId);
+      if (dbError) throw new Error(dbError.message);
+      // Direkte Vorschau: eigenes Objekt signieren (1 h) — der nächste
+      // Seitenaufruf liefert ohnehin frisch signierte URLs vom Server.
+      const { data: signed, error: signError } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(path, 60 * 60);
+      if (signError) throw new Error(signError.message);
+      setAvatarUrl(signed?.signedUrl ?? null);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload fehlgeschlagen.");
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  async function removeAvatar() {
+    setError(null);
+    setAvatarBusy(true);
+    try {
+      const supabase = createClient();
+      const { error: dbError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null })
+        .eq("id", userId);
+      if (dbError) throw new Error(dbError.message);
+      await supabase.storage.from("avatars").remove([`${userId}/avatar.jpg`]);
+      setAvatarUrl(null);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Entfernen fehlgeschlagen.");
+    } finally {
+      setAvatarBusy(false);
+    }
   }
 
   async function logout() {
@@ -94,6 +189,55 @@ export default function ProfileClient({
       {/* Einheitlicher Seitenrahmen (volle Breite, max. 1600px); Formulare in lesbarer Breite */}
       <div className="mx-auto max-w-xl">
         <div className="mt-6 space-y-5">
+        <div>
+          <span className="block text-sm text-gray-500">Profilbild</span>
+          <div className="mt-2 flex items-center gap-4">
+            <Avatar
+              url={avatarUrl}
+              name={displayName || "?"}
+              size={96}
+              className={avatarBusy ? "opacity-50" : ""}
+            />
+            <div className="flex flex-col items-start gap-2">
+              <label
+                htmlFor="avatar-input"
+                className={`inline-flex cursor-pointer rounded border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 ${
+                  avatarBusy ? "pointer-events-none opacity-50" : ""
+                }`}
+              >
+                {avatarBusy ? "Lädt…" : avatarUrl ? "Bild ändern" : "Bild auswählen"}
+              </label>
+              <input
+                id="avatar-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                disabled={avatarBusy}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  // value zurücksetzen, damit dieselbe Datei erneut gewählt werden kann
+                  e.target.value = "";
+                  if (file) void uploadAvatar(file);
+                }}
+              />
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={() => void removeAvatar()}
+                  disabled={avatarBusy}
+                  className="text-sm text-gray-500 underline hover:text-gray-800 disabled:opacity-50"
+                >
+                  Entfernen
+                </button>
+              )}
+            </div>
+          </div>
+          <p className="mt-1 text-xs text-gray-400">
+            Wird quadratisch zugeschnitten und als rundes Bild neben deinem
+            Namen angezeigt (JPEG, PNG oder WebP, max. 10 MB).
+          </p>
+        </div>
+
         <div>
           <label htmlFor="email" className="block text-sm text-gray-500">
             E-Mail

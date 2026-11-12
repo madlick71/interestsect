@@ -1,3 +1,4 @@
 {
-    "chat.defaultModel": "glm/glm-5.3"
+    "chat.defaultModel": "glm/glm-5.3",
+    "chat.agentHost.experimental.titleGeneration": "activeAgent"
 }

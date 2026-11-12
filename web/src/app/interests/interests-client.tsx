@@ -49,15 +49,29 @@ export default function InterestsClient() {
   const [saving, setSaving] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Vorschlags-Formular (neue Interessen zur Prüfung einreichen)
+  const [suggestCat, setSuggestCat] = useState("");
+  const [suggestName, setSuggestName] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestMsg, setSuggestMsg] = useState<
+    { kind: "ok" | "hint" | "error"; text: string } | null
+  >(null);
+  const [openSuggestions, setOpenSuggestions] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     const supabase = createClient();
-    const [cats, mine] = await Promise.all([
+    const [cats, mine, pending] = await Promise.all([
       supabase
         .from("interest_categories")
         .select("id, slug, name_de, sort_order")
         .order("sort_order"),
       supabase.from("user_interests").select("interest_id"),
+      // Eigene offene Vorschläge (Admins sehen alle) — für Hinweise
+      supabase
+        .from("interest_suggestions")
+        .select("id, name_de")
+        .eq("status", "pending")
+        .limit(100),
     ]);
     // Interessen seitenweise laden — die API liefert max. 1000 Zeilen
     // pro Anfrage, der Katalog ist inzwischen größer
@@ -79,6 +93,9 @@ export default function InterestsClient() {
     setInterests(ints);
     setSelected(new Set((mine.data ?? []).map((r) => r.interest_id)));
     setInitialSelected(new Set((mine.data ?? []).map((r) => r.interest_id)));
+    setOpenSuggestions(
+      new Set((pending.data ?? []).map((r) => normalize(r.name_de))),
+    );
   }, []);
 
   useEffect(() => {
@@ -132,11 +149,68 @@ export default function InterestsClient() {
 
   const dirty = !setsEqual(selected, initialSelected);
 
-  async function handlePrimaryAction() {
-    if (!dirty) {
-      router.push("/home");
+  async function handleSuggest(e: React.FormEvent) {
+    e.preventDefault();
+    setSuggestMsg(null);
+    const name = suggestName.trim();
+    if (!suggestCat) {
+      setSuggestMsg({ kind: "hint", text: "Bitte zuerst eine Kategorie wählen." });
       return;
     }
+    if (!name) {
+      setSuggestMsg({ kind: "hint", text: "Bitte einen Namen eingeben." });
+      return;
+    }
+
+    // Gibt es das Interesse schon? Dann direkt auswählen statt vorschlagen
+    const n = normalize(name);
+    const existing = interests.find(
+      (i) => normalize(i.name_de) === n || normalize(i.slug) === n,
+    );
+    if (existing) {
+      toggle(existing.id);
+      setSuggestName("");
+      setSuggestMsg({
+        kind: "hint",
+        text: `„${existing.name_de}" gibt es schon — direkt ausgewählt.`,
+      });
+      return;
+    }
+
+    if (openSuggestions.has(n)) {
+      setSuggestMsg({
+        kind: "hint",
+        text: `„${name}" wurde bereits vorgeschlagen und wartet auf Prüfung.`,
+      });
+      return;
+    }
+
+    setSuggesting(true);
+    const supabase = createClient();
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    if (!userId) {
+      setSuggestMsg({ kind: "error", text: "Nicht angemeldet." });
+      setSuggesting(false);
+      return;
+    }
+    const { error: insError } = await supabase
+      .from("interest_suggestions")
+      .insert({ category_id: suggestCat, name_de: name, suggested_by: userId });
+    setSuggesting(false);
+    if (insError) {
+      setSuggestMsg({ kind: "error", text: insError.message });
+      return;
+    }
+    setOpenSuggestions((prev) => new Set(prev).add(n));
+    setSuggestName("");
+    setSuggestMsg({
+      kind: "ok",
+      text: `„${name}" vorgeschlagen — erscheint nach Prüfung im Katalog.`,
+    });
+  }
+
+  async function handlePrimaryAction() {
+    if (!dirty) return;
     await save();
   }
 
@@ -248,42 +322,99 @@ export default function InterestsClient() {
         )}
       </div>
 
-      <div className="sticky bottom-4 mt-10 flex items-center justify-center gap-4 rounded-lg border bg-white p-4 shadow">
-        <button
-          onClick={handlePrimaryAction}
-          disabled={saving || redirecting}
-          className="flex items-center gap-2 rounded bg-black px-5 py-2 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-        >
-          {(saving || redirecting) && (
-            <svg
-              className="h-4 w-4 animate-spin"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
+      <div className="sticky bottom-4 mt-10 rounded-lg border bg-white p-4 shadow">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <form
+            onSubmit={handleSuggest}
+            className="flex min-w-0 flex-1 flex-col gap-2"
+            aria-label="Neues Interesse vorschlagen"
+          >
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <select
+                value={suggestCat}
+                onChange={(e) => setSuggestCat(e.target.value)}
+                aria-label="Kategorie für den Vorschlag"
+                className="rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-black sm:w-56"
+              >
+                <option value="">Kategorie wählen…</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name_de}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={suggestName}
+                onChange={(e) => setSuggestName(e.target.value)}
+                maxLength={80}
+                placeholder="Fehlt ein Interesse? Hier eintragen…"
+                aria-label="Name des Interesses"
+                className="min-w-0 flex-1 rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black"
               />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
-              />
-            </svg>
-          )}
-          {saving
-            ? "Speichern…"
-            : redirecting
-              ? "Weiterleiten…"
-              : dirty
-                ? "Speichern"
-                : "Home"}
-        </button>
+              <button
+                type="submit"
+                disabled={suggesting}
+                className="whitespace-nowrap rounded border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white disabled:opacity-50"
+              >
+                {suggesting ? "Reiche ein…" : "Interesse hinzufügen"}
+              </button>
+            </div>
+            {suggestMsg && (
+              <p
+                className={`text-xs ${
+                  suggestMsg.kind === "ok"
+                    ? "text-green-700"
+                    : suggestMsg.kind === "error"
+                      ? "text-red-700"
+                      : "text-gray-600"
+                }`}
+                role="status"
+              >
+                {suggestMsg.text}
+              </p>
+            )}
+            {openSuggestions.size > 0 && !suggestMsg && (
+              <p className="text-xs text-gray-500">
+                {openSuggestions.size} Vorschlag{openSuggestions.size === 1 ? "" : "e"} in Prüfung
+              </p>
+            )}
+          </form>
+
+          <button
+            onClick={handlePrimaryAction}
+            disabled={saving || redirecting || !dirty}
+            className="flex shrink-0 items-center justify-center gap-2 rounded bg-black px-5 py-2 font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {(saving || redirecting) && (
+              <svg
+                className="h-4 w-4 animate-spin"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
+                />
+              </svg>
+            )}
+            {saving
+              ? "Speichern…"
+              : redirecting
+                ? "Weiterleiten…"
+                : "Speichern"}
+          </button>
+        </div>
       </div>
     </main>
   );

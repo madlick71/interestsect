@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import ProfileClient from "./profile-client";
+import { resolveAvatarUrl, signAvatarUrls } from "@/lib/avatars";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -12,7 +13,7 @@ export default async function ProfilePage() {
   const [{ data: profile }, { data: sub }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("display_name, region, lat, lng, bio")
+      .select("display_name, region, lat, lng, bio, avatar_url")
       .eq("id", user.id)
       .single(),
     supabase
@@ -21,6 +22,9 @@ export default async function ProfilePage() {
       .eq("user_id", user.id)
       .single(),
   ]);
+
+  // Privater Bucket: eigenen Avatar-Pfad zu einer Signed URL signieren.
+  const avatarUrls = await signAvatarUrls(supabase, [profile?.avatar_url]);
 
   return (
     <ProfileClient
@@ -32,6 +36,7 @@ export default async function ProfilePage() {
         lat: profile?.lat ?? null,
         lng: profile?.lng ?? null,
         bio: profile?.bio ?? "",
+        avatarUrl: resolveAvatarUrl(avatarUrls, profile?.avatar_url),
       }}
       subscription={{
         status: sub?.status ?? "none",

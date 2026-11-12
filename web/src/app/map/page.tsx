@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import MapPageClient from "./map-page-client";
 import SiteNav from "@/app/components/SiteNav";
 import type { MapMatch } from "./matches-map";
+import { resolveAvatarUrl, signAvatarUrls } from "@/lib/avatars";
 
 // Treffer-Karte: dieselben Treffer wie auf der Home-Seite (find_matches),
 // verortet über die im Profil per Geocoding gewählte Region.
@@ -58,8 +59,18 @@ export default async function MapPage({
         }
       : undefined;
 
+  // Privater Bucket: Avatar-Pfade zu kurzlebigen Signed URLs signieren,
+  // damit die client-seitigen Karten-Popups die Bilder laden können.
   const allMatches = (matches ?? []) as MapMatch[];
-  const locatedCount = allMatches.filter(
+  const avatarUrls = await signAvatarUrls(
+    supabase,
+    allMatches.map((m) => m.avatar_url),
+  );
+  const signedMatches: MapMatch[] = allMatches.map((m) => ({
+    ...m,
+    avatar_url: resolveAvatarUrl(avatarUrls, m.avatar_url),
+  }));
+  const locatedCount = signedMatches.filter(
     (m) => m.lat != null && m.lng != null,
   ).length;
   const ownLocation =
@@ -92,7 +103,7 @@ export default async function MapPage({
         </span>
       </div>
       <MapPageClient
-        matches={allMatches}
+        matches={signedMatches}
         initialView={initialView}
         ownLocation={ownLocation}
         emptyHint={emptyHint}

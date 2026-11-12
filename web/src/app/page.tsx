@@ -45,8 +45,8 @@ export default function Home() {
       </h1>
       <p className="mt-4 text-lg text-gray-700">
         Das soziale Netzwerk für echte Treffen. Kein Newsfeed,
-        keine Likes, keine Profilbild-Galerien — nur gemeinsame
-        Interessen und Menschen, die sie teilen.
+        keine Likes, keine Werbung — nur gemeinsame Interessen
+        und Menschen, die sie teilen.
       </p>
 
       <ul className="mt-8 space-y-3 text-gray-800">

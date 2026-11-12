@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Vorschlag 3: Dialog — zwei überlappende Sprechblasen -->
+  <g>
+    <rect x="56" y="72" width="256" height="176" rx="52" fill="#171717"/>
+    <path d="M120 240l-30 62 74-48z" fill="#171717"/>
+  </g>
+  <g>
+    <rect x="200" y="252" width="256" height="176" rx="52" fill="#FF5A36"/>
+    <path d="M392 424l30 62-74-48z" fill="#FF5A36"/>
+  </g>
+  <!-- drei Punkte in der hinteren Blase -->
+  <circle cx="150" cy="160" r="14" fill="#FFFFFF"/>
+  <circle cx="196" cy="160" r="14" fill="#FFFFFF"/>
+  <circle cx="242" cy="160" r="14" fill="#FFFFFF"/>
+</svg>

@@ -11,9 +11,24 @@ const mulish = Mulish({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://interestsect.com"),
   title: "InterestSect",
   description:
     "Das soziale Netzwerk für echte Treffen — gemeinsame Interessen statt Newsfeed.",
+  openGraph: {
+    title: "InterestSect",
+    description:
+      "Das soziale Netzwerk für echte Treffen — gemeinsame Interessen statt Newsfeed.",
+    url: "https://interestsect.com",
+    siteName: "InterestSect",
+    locale: "de_DE",
+    type: "website",
+  },
+  verification: {
+    // Google Search Console (Domain-Property via DNS-TXT;
+    // Meta-Tag als Fallback für eine URL-Präfix-Property)
+    google: "6KZdDQfuXbTxZNh8h7VyJ-S0DOq9irhobJZLIVyAjwQ",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
