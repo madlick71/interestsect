@@ -11,7 +11,7 @@ Quellen (alle öffentlich):
 
 Nutzung:
   python3 scripts/wikidata_harvest.py            # alle Wellen
-  Ergebnis: /tmp/harvest/<welle>.json
+  Ergebnis: scripts/data/harvest/<welle>.json
 
 Hinweis: Wikidata rate-limittet (~30 Queries/Tag pro IP getestet).
 Bei HTTP 429/Timeouts: am nächsten Tag fortsetzen. Der Cursor-Ansatz
@@ -26,7 +26,7 @@ import unicodedata
 import urllib.parse
 import urllib.request
 
-OUT = "/tmp/harvest"
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "harvest")
 os.makedirs(OUT, exist_ok=True)
 UA = {"User-Agent": "interestsect-research/0.2 (dev@interestsect.example)"}
 MIG = "/Users/stefan/myAiProjects/interestsect/supabase/migrations/"
@@ -43,7 +43,7 @@ def http_get(url, accept=None, retries=4):
                 return r.read().decode("utf-8", "replace")
         except Exception as e:
             print(f"    retry {a+1}: {e}", flush=True)
-            time.sleep(8 * (a + 1))
+            time.sleep(20 * (a + 1))
     raise RuntimeError(f"GET fehlgeschlagen: {url[:80]}")
 
 
@@ -54,8 +54,12 @@ def sparql(query):
     return json.loads(http_get(url, accept="application/sparql-results+json"))
 
 
-def q_entities(where, limit, chunk=10000):
-    """Entities mit de-Label nach Sitelinks absteigend; Cursor über Sitelinks-Fenster."""
+def q_entities(where, limit, chunk=4000, min_sl=8):
+    """Entities mit de-Label nach Sitelinks absteigend; Cursor über Sitelinks-Fenster.
+
+    min_slfiltert unpopuläre Entities (>60s-Timeout der WDQS vermeiden): ohne
+    Untergrenze muss Blazegraph Millionen Zeilen sortieren und stirbt mit 504.
+    """
     rows = []
     cursor = None
     while len(rows) < limit:
@@ -65,6 +69,7 @@ SELECT ?labelDe ?sl WHERE {{
   {where}
   ?e rdfs:label ?labelDe . FILTER(LANG(?labelDe) = "de")
   ?e wikibase:sitelinks ?sl .
+  FILTER(?sl > {min_sl})
   {c}
 }}
 ORDER BY DESC(?sl)
@@ -84,6 +89,7 @@ LIMIT {chunk}
         print(f"    … {len(rows)} (Sitelinks-Fenster endet bei {cursor})", flush=True)
         if len(b) < chunk:
             break
+        time.sleep(1)
     return rows[:limit]
 
 
@@ -102,7 +108,7 @@ def load_catalog_keys():
     row = re.compile(r"\('([a-z-]+)','([a-z0-9-]+)','([^']+)',array\[([^\]]*)\]\)")
     names, slugs = set(), set()
     import glob
-    for f in sorted(glob.glob(MIG + "20261111*.sql")):
+    for f in sorted(glob.glob(MIG + "2026111*.sql") + glob.glob(MIG + "2026112*.sql")):
         if "init_schema" in f:
             continue
         t = open(f, encoding="utf-8").read()
@@ -114,9 +120,18 @@ def load_catalog_keys():
     return names, slugs
 
 
-def run_wave(tag, where, limit, category, keywords):
+def run_wave(tag, where, limit, category, keywords, min_sl=8):
+    import os
+    path = f"{OUT}/{tag}.json"
+    if os.path.exists(path) and os.path.getsize(path) > 10 and not os.environ.get("FORCE"):
+        old = json.load(open(path))
+        for e in old:
+            KAT_NAMES.add(norm(e["name"]))
+            KAT_SLUGS.add(e["slug"])
+        print(f"[{tag}] vorhanden: {len(old)} – übersprungen", flush=True)
+        return old
     print(f"[{tag}] Ziel: {limit}", flush=True)
-    rows = q_entities(where, limit)
+    rows = q_entities(where, limit, min_sl=min_sl)
     out = []
     seen = set()
     for name, sl in rows:
@@ -129,7 +144,8 @@ def run_wave(tag, where, limit, category, keywords):
         KAT_SLUGS.add(s)
         out.append({"name": name, "slug": s, "sl": sl, "cat": category, "kw": keywords})
     print(f"[{tag}] übernommen: {len(out)}", flush=True)
-    json.dump(out, open(f"{OUT}/{tag}.json", "w"), ensure_ascii=False)
+    json.dump(out, open(path, "w"), ensure_ascii=False)
+    time.sleep(15)  # Rate-Limit schonen: Pause zwischen Wellen
     return out
 
 
@@ -140,9 +156,9 @@ total = []
 
 # ---- Welle A: Personen ----
 total += run_wave("musiker", "?e wdt:P106 wd:Q639669 .", 8000, "musiker-bands", ["musik", "star"])
-total += run_wave("bands", "?e wdt:P31 wd:Q215627 .", 5000, "musiker-bands", ["band", "musik"])
+total += run_wave("bands", "?e wdt:P31 wd:Q215380 .", 5000, "musiker-bands", ["band", "musik"])
 total += run_wave("schauspieler", "?e wdt:P106 wd:Q33999 .", 8000, "schauspieler-stars", ["film", "star"])
-total += run_wave("fussballspieler", "?e wdt:P106 wd:Q937857 .", 5000, "sportler-teams", ["fussball", "idol"])
+total += run_wave("fussballspieler", "?e wdt:P106 wd:Q937857 .", 5000, "sportler-teams", ["fussball", "idol"], min_sl=20)
 total += run_wave("autoren", "?e wdt:P106 wd:Q482980 .", 5000, "autoren", ["autor", "buch"])
 total += run_wave("regisseure", "?e wdt:P106 wd:Q2526255 .", 1200, "filmkunst", ["regie", "film"])
 
@@ -157,7 +173,7 @@ total += run_wave("genres", "?e wdt:P31 wd:Q188451 .", 4000, "musikrichtungen", 
 # ---- Welle D: Städte & Vereine ----
 total += run_wave(
     "staedte",
-    "?e wdt:P31/wdt:P279* wd:Q515 . ?e p:P1082 ?p2 . ?p2 ps:P1082 ?pop . FILTER(?pop > 100000)",
+    "?e wdt:P31 wd:Q515 . ?e p:P1082 ?p2 . ?p2 ps:P1082 ?pop . FILTER(?pop > 100000)",
     5000,
     "reiseziele",
     ["stadt", "reise"],
