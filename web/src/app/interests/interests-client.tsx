@@ -402,9 +402,7 @@ export default function InterestsClient() {
                         >
                           {loadingCats.has(cat.id)
                             ? "Lade…"
-                            : `Weitere laden (${
-                                total - items.length
-                              } offen)`}
+                            : `Weitere laden (${total - items.length})`}
                         </button>
                       )}
                     </>
