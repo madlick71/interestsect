@@ -394,9 +394,27 @@ export type Database = {
         }[]
       }
       has_active_entitlement: { Args: never; Returns: boolean }
+      interest_category_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          category_id: string
+          n: number
+        }[]
+      }
+      interest_norm: { Args: { s: string }; Returns: string }
       reject_interest_suggestion: {
         Args: { p_suggestion_id: string }
         Returns: undefined
+      }
+      search_interests: {
+        Args: { cat?: string; lmt?: number; offs?: number; q?: string }
+        Returns: {
+          category_id: string
+          id: string
+          keywords: string[]
+          name_de: string
+          slug: string
+        }[]
       }
       set_interest_suggestion_category: {
         Args: { p_category_id: string; p_suggestion_id: string }

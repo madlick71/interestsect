@@ -39,11 +39,23 @@ function setsEqual(a: Set<string>, b: Set<string>) {
   return true;
 }
 
+const SEARCH_LIMIT = 150;
+const PAGE = 200;
+
 export default function InterestsClient() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [interests, setInterests] = useState<Interest[]>([]);
+  // Lazy Loading: Interessen werden nie komplett geladen, sondern pro
+  // Kategorie beim Aufklappen (200er-Seiten) bzw. per serverseitiger
+  // Suche (search_interests-RPC) nachgeladen
+  const [catCounts, setCatCounts] = useState<Record<string, number>>({});
+  const [catPages, setCatPages] = useState<Record<string, Interest[]>>({});
+  const [loadingCats, setLoadingCats] = useState<Set<string>>(new Set());
+  const [searchResults, setSearchResults] = useState<Interest[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchCapped, setSearchCapped] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectedByCat, setSelectedByCat] = useState<Record<string, number>>({});
   const [initialSelected, setInitialSelected] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
   // Default: alle Kategorien zugeklappt
@@ -62,39 +74,45 @@ export default function InterestsClient() {
 
   const load = useCallback(async () => {
     const supabase = createClient();
-    const [cats, mine, pending] = await Promise.all([
+    const [cats, mine, pending, counts] = await Promise.all([
       supabase
         .from("interest_categories")
         .select("id, slug, name_de, sort_order")
         .order("sort_order"),
-      supabase.from("user_interests").select("interest_id"),
+      // Auswahlen mit Kategorie-Join (für „X ausgewählt" je Kategorie)
+      supabase.from("user_interests").select("interest_id, interests(category_id)"),
       // Eigene offene Vorschläge (Admins sehen alle) — für Hinweise
       supabase
         .from("interest_suggestions")
         .select("id, name_de")
         .eq("status", "pending")
         .limit(100),
+      supabase.rpc("interest_category_counts"),
     ]);
-    // Interessen seitenweise laden — die API liefert max. 1000 Zeilen
-    // pro Anfrage, der Katalog ist inzwischen größer
-    const ints: Interest[] = [];
-    for (let from = 0; ; from += 1000) {
-      const page = await supabase
-        .from("interests")
-        .select("id, category_id, slug, name_de, keywords")
-        .order("name_de")
-        .range(from, from + 999);
-      if (page.error || cats.error || mine.error) {
-        setError("Konnte Daten nicht laden. Bist du angemeldet?");
-        return;
-      }
-      ints.push(...(page.data ?? []));
-      if (!page.data || page.data.length < 1000) break;
+    if (cats.error || mine.error || pending.error || counts.error) {
+      setError("Konnte Daten nicht laden. Bist du angemeldet?");
+      return;
     }
     setCategories(cats.data ?? []);
-    setInterests(ints);
-    setSelected(new Set((mine.data ?? []).map((r) => r.interest_id)));
-    setInitialSelected(new Set((mine.data ?? []).map((r) => r.interest_id)));
+    const cnt: Record<string, number> = {};
+    for (const r of (counts.data ?? []) as { category_id: string; n: number }[]) {
+      cnt[r.category_id] = Number(r.n);
+    }
+    setCatCounts(cnt);
+    const sel = (mine.data ?? []).map(
+      (r: { interest_id: string }) => r.interest_id,
+    );
+    const byCat: Record<string, number> = {};
+    for (const r of (mine.data ?? []) as {
+      interest_id: string;
+      interests: { category_id: string } | null;
+    }[]) {
+      const c = r.interests?.category_id;
+      if (c) byCat[c] = (byCat[c] ?? 0) + 1;
+    }
+    setSelected(new Set(sel));
+    setInitialSelected(new Set(sel));
+    setSelectedByCat(byCat);
     setOpenSuggestions(
       new Set((pending.data ?? []).map((r) => normalize(r.name_de))),
     );
@@ -103,6 +121,58 @@ export default function InterestsClient() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Suche: entprellt serverseitig (search_interests-RPC), max. SEARCH_LIMIT
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      const q = query.trim();
+      if (q === "") {
+        setSearchResults([]);
+        setSearchCapped(false);
+        setSearching(false);
+        return;
+      }
+      setSearching(true);
+      const supabase = createClient();
+      const { data, error: rpcError } = await supabase.rpc("search_interests", {
+        q,
+        lmt: SEARCH_LIMIT,
+        offs: 0,
+      });
+      setSearching(false);
+      if (rpcError) {
+        setError("Suche fehlgeschlagen: " + rpcError.message);
+        return;
+      }
+      setSearchResults((data ?? []) as Interest[]);
+      setSearchCapped((data?.length ?? 0) >= SEARCH_LIMIT);
+    }, 250);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  async function fetchCatPage(catId: string, from: number) {
+    setLoadingCats((prev) => new Set(prev).add(catId));
+    const supabase = createClient();
+    const { data, error: pageError } = await supabase
+      .from("interests")
+      .select("id, category_id, slug, name_de, keywords")
+      .eq("category_id", catId)
+      .order("name_de")
+      .range(from, from + PAGE - 1);
+    setLoadingCats((prev) => {
+      const next = new Set(prev);
+      next.delete(catId);
+      return next;
+    });
+    if (pageError) {
+      setError("Interessen konnten nicht geladen werden.");
+      return;
+    }
+    setCatPages((prev) => {
+      const page = (data ?? []) as Interest[];
+      return { ...prev, [catId]: from === 0 ? page : [...(prev[catId] ?? []), ...page] };
+    });
+  }
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -165,8 +235,15 @@ export default function InterestsClient() {
     }
 
     // Gibt es das Interesse schon? Dann direkt auswählen statt vorschlagen
+    // (serverseitig suchen — der Katalog liegt nicht mehr komplett im Client)
     const n = normalize(name);
-    const existing = interests.find(
+    const supabase = createClient();
+    const { data: found } = await supabase.rpc("search_interests", {
+      q: name,
+      lmt: 50,
+      offs: 0,
+    });
+    const existing = ((found ?? []) as Interest[]).find(
       (i) => normalize(i.name_de) === n || normalize(i.slug) === n,
     );
     if (existing) {
@@ -188,7 +265,6 @@ export default function InterestsClient() {
     }
 
     setSuggesting(true);
-    const supabase = createClient();
     const userId = (await supabase.auth.getUser()).data.user?.id;
     if (!userId) {
       setSuggestMsg({ kind: "error", text: "Nicht angemeldet." });
@@ -217,28 +293,36 @@ export default function InterestsClient() {
   }
 
   function toggleCat(id: string) {
+    const willOpen = !openCats.has(id);
     setOpenCats((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
+    // Lazy Loading: erste Seite erst beim Aufklappen nachladen
+    if (willOpen && !catPages[id]) void fetchCatPage(id, 0);
   }
 
-  const q = normalize(query.trim());
-  const matches = (i: Interest) =>
-    !q ||
-    normalize(i.name_de).includes(q) ||
-    normalize(i.slug).includes(q) ||
-    (i.keywords ?? []).some((k) => normalize(k).includes(q));
+  function renderChip(interest: Interest) {
+    const active = selected.has(interest.id);
+    return (
+      <button
+        key={interest.id}
+        onClick={() => toggle(interest.id)}
+        className={`rounded-full border px-3 py-1 text-sm transition ${
+          active
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-input hover:border-muted-foreground"
+        }`}
+      >
+        {interest.name_de}
+      </button>
+    );
+  }
 
-  const totalHits =
-    q === ""
-      ? interests.length
-      : interests.filter((i) => matches(i)).length;
-
-  const visible = (catId: string) =>
-    interests.filter((i) => i.category_id === catId && matches(i));
+  const q = query.trim();
+  const totalCount = Object.values(catCounts).reduce((a, b) => a + b, 0);
 
   return (
     <Background>
@@ -248,7 +332,7 @@ export default function InterestsClient() {
         <p className="mt-2 text-sm text-muted-foreground">
           Wähle so spezifisch wie möglich — die Grundlage für Treffer sind
           gemeinsame Interessen. Aktuell ausgewählt: {selected.size} von{" "}
-          {interests.length.toLocaleString("de-DE")} Interessen
+          {totalCount.toLocaleString("de-DE")} Interessen
         </p>
 
         {error && <p className="mt-4 rounded bg-red-50 p-3 text-red-700">{error}</p>}
@@ -263,64 +347,104 @@ export default function InterestsClient() {
         />
         {q !== "" && (
           <p className="mt-2 text-sm text-muted-foreground">
-            {totalHits} {totalHits === 1 ? "Treffer" : "Treffer"} für „{query.trim()}
-            “
+            {searching
+              ? "Suche…"
+              : `${searchResults.length}${searchCapped ? "+" : ""} ${
+                  searchResults.length === 1 ? "Treffer" : "Treffer"
+                } für „${q}“`}
           </p>
         )}
 
         <div className="mt-8 space-y-8">
-          {categories.map((cat) => {
-            const items = visible(cat.id);
-            if (items.length === 0) return null;
-            const open = openCats.has(cat.id);
-            const selectedInCat = items.filter((i) =>
-              selected.has(i.id),
-            ).length;
-            return (
-              <section key={cat.id}>
-                <button
-                  type="button"
-                  onClick={() => toggleCat(cat.id)}
-                  aria-expanded={open}
-                  className="flex w-full items-baseline justify-between gap-4 border-b pb-2 text-left"
-                >
-                  <h2 className="font-semibold">{cat.name_de}</h2>
-                  <span className="text-sm text-muted-foreground">
-                    {selectedInCat > 0 && (
-                      <span className="mr-2">
-                        {selectedInCat} ausgewählt
-                      </span>
-                    )}
-                    {items.length} Interessen <span aria-hidden>{open ? "▲" : "▼"}</span>
-                  </span>
-                </button>
-                {open && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {items.map((interest) => {
-                      const active = selected.has(interest.id);
-                      return (
+          {q === "" &&
+            categories.map((cat) => {
+              const total = catCounts[cat.id] ?? 0;
+              if (total === 0) return null;
+              const items = catPages[cat.id] ?? [];
+              const open = openCats.has(cat.id);
+              const selectedInCat = selectedByCat[cat.id] ?? 0;
+              return (
+                <section key={cat.id}>
+                  <button
+                    type="button"
+                    onClick={() => toggleCat(cat.id)}
+                    aria-expanded={open}
+                    className="flex w-full items-baseline justify-between gap-4 border-b pb-2 text-left"
+                  >
+                    <h2 className="font-semibold">{cat.name_de}</h2>
+                    <span className="text-sm text-muted-foreground">
+                      {selectedInCat > 0 && (
+                        <span className="mr-2">
+                          {selectedInCat} ausgewählt
+                        </span>
+                      )}
+                      {total.toLocaleString("de-DE")} Interessen{" "}
+                      <span aria-hidden>{open ? "▲" : "▼"}</span>
+                    </span>
+                  </button>
+                  {open && (
+                    <>
+                      {loadingCats.has(cat.id) && items.length === 0 ? (
+                        <p className="mt-3 text-sm text-muted-foreground">
+                          Lade Interessen…
+                        </p>
+                      ) : (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {items.map((interest) => renderChip(interest))}
+                        </div>
+                      )}
+                      {items.length < total && (
                         <button
-                          key={interest.id}
-                          onClick={() => toggle(interest.id)}
-                          className={`rounded-full border px-3 py-1 text-sm transition ${
-                            active
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-input hover:border-muted-foreground"
-                          }`}
+                          type="button"
+                          onClick={() => void fetchCatPage(cat.id, items.length)}
+                          disabled={loadingCats.has(cat.id)}
+                          className="mt-3 rounded-md border border-input px-3 py-1.5 text-sm text-muted-foreground transition hover:border-muted-foreground disabled:opacity-50"
                         >
-                          {interest.name_de}
+                          {loadingCats.has(cat.id)
+                            ? "Lade…"
+                            : `Weitere laden (${
+                                total - items.length
+                              } offen)`}
                         </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-            );
-          })}
-          {q !== "" && totalHits === 0 && (
+                      )}
+                    </>
+                  )}
+                </section>
+              );
+            })}
+
+          {q !== "" && !searching && searchResults.length === 0 && (
             <p className="rounded-lg border p-6 text-muted-foreground">
-              Keine Treffer für „{query.trim()}“ — tippe es anders oder wähle
-              direkt aus den Kategorien.
+              Keine Treffer für „{q}“ — tippe es anders oder reiche den
+              Begriff unten als Vorschlag ein.
+            </p>
+          )}
+
+          {q !== "" &&
+            categories.map((cat) => {
+              const items = searchResults.filter(
+                (i) => i.category_id === cat.id,
+              );
+              if (items.length === 0) return null;
+              return (
+                <section key={cat.id}>
+                  <h2 className="border-b pb-2 font-semibold">
+                    {cat.name_de}
+                    <span className="ml-2 text-sm font-normal text-muted-foreground">
+                      {items.length} Treffer
+                    </span>
+                  </h2>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {items.map((interest) => renderChip(interest))}
+                  </div>
+                </section>
+              );
+            })}
+
+          {q !== "" && searchCapped && (
+            <p className="text-sm text-muted-foreground">
+              Zeige die ersten {SEARCH_LIMIT} Treffer — tippe weiter, um die
+              Suche zu verfeinern.
             </p>
           )}
         </div>
