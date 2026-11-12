@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SiteNav from "@/app/components/SiteNav";
+import { Background } from "@/app/components/background";
+import { Button } from "@/app/components/ui/button";
 
 type Category = {
   id: string;
@@ -239,183 +241,186 @@ export default function InterestsClient() {
     interests.filter((i) => i.category_id === catId && matches(i));
 
   return (
-    <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
-      <SiteNav />
-      <h1 className="text-2xl font-bold">Deine Interessen</h1>
-      <p className="mt-2 text-sm text-gray-600">
-        Wähle so spezifisch wie möglich — die Grundlage für Treffer sind
-        gemeinsame Interessen. Aktuell ausgewählt: {selected.size} von{" "}
-        {interests.length.toLocaleString("de-DE")} Interessen
-      </p>
-
-      {error && <p className="mt-4 rounded bg-red-50 p-3 text-red-700">{error}</p>}
-
-      <input
-        type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Interessen suchen (z. B. schach, kräuter, funk)…"
-        className="mt-6 w-full rounded border border-gray-300 px-4 py-2.5 outline-none focus:border-black"
-        aria-label="Interessen durchsuchen"
-      />
-      {q !== "" && (
-        <p className="mt-2 text-sm text-gray-500">
-          {totalHits} {totalHits === 1 ? "Treffer" : "Treffer"} für „{query.trim()}
-          “
+    <Background>
+      <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
+        <SiteNav />
+        <h1 className="text-2xl font-bold tracking-tight">Deine Interessen</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Wähle so spezifisch wie möglich — die Grundlage für Treffer sind
+          gemeinsame Interessen. Aktuell ausgewählt: {selected.size} von{" "}
+          {interests.length.toLocaleString("de-DE")} Interessen
         </p>
-      )}
 
-      <div className="mt-8 space-y-8">
-        {categories.map((cat) => {
-          const items = visible(cat.id);
-          if (items.length === 0) return null;
-          const open = openCats.has(cat.id);
-          const selectedInCat = items.filter((i) =>
-            selected.has(i.id),
-          ).length;
-          return (
-            <section key={cat.id}>
-              <button
-                type="button"
-                onClick={() => toggleCat(cat.id)}
-                aria-expanded={open}
-                className="flex w-full items-baseline justify-between gap-4 border-b pb-2 text-left"
-              >
-                <h2 className="font-semibold">{cat.name_de}</h2>
-                <span className="text-sm text-gray-500">
-                  {selectedInCat > 0 && (
-                    <span className="mr-2">
-                      {selectedInCat} ausgewählt
-                    </span>
-                  )}
-                  {items.length} Interessen <span aria-hidden>{open ? "▲" : "▼"}</span>
-                </span>
-              </button>
-              {open && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {items.map((interest) => {
-                    const active = selected.has(interest.id);
-                    return (
-                      <button
-                        key={interest.id}
-                        onClick={() => toggle(interest.id)}
-                        className={`rounded-full border px-3 py-1 text-sm transition ${
-                          active
-                            ? "border-black bg-black text-white"
-                            : "border-gray-300 hover:border-gray-500"
-                        }`}
-                      >
-                        {interest.name_de}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-          );
-        })}
-        {q !== "" && totalHits === 0 && (
-          <p className="rounded border p-6 text-gray-600">
-            Keine Treffer für „{query.trim()}“ — tippe es anders oder wähle
-            direkt aus den Kategorien.
+        {error && <p className="mt-4 rounded bg-red-50 p-3 text-red-700">{error}</p>}
+
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Interessen suchen (z. B. schach, kräuter, funk)…"
+          className="mt-6 w-full rounded-md border border-input bg-background px-4 py-2.5 outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30"
+          aria-label="Interessen durchsuchen"
+        />
+        {q !== "" && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            {totalHits} {totalHits === 1 ? "Treffer" : "Treffer"} für „{query.trim()}
+            “
           </p>
         )}
-      </div>
 
-      <div className="sticky bottom-4 mt-10 rounded-lg border bg-white p-4 shadow">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <form
-            onSubmit={handleSuggest}
-            className="flex min-w-0 flex-1 flex-col gap-2"
-            aria-label="Neues Interesse vorschlagen"
-          >
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <select
-                value={suggestCat}
-                onChange={(e) => setSuggestCat(e.target.value)}
-                aria-label="Kategorie für den Vorschlag"
-                className="rounded border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-black sm:w-56"
-              >
-                <option value="">Kategorie wählen…</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name_de}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={suggestName}
-                onChange={(e) => setSuggestName(e.target.value)}
-                maxLength={80}
-                placeholder="Fehlt ein Interesse? Hier eintragen…"
-                aria-label="Name des Interesses"
-                className="min-w-0 flex-1 rounded border border-gray-300 px-3 py-2 text-sm outline-none focus:border-black"
-              />
-              <button
-                type="submit"
-                disabled={suggesting}
-                className="whitespace-nowrap rounded border border-black px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white disabled:opacity-50"
-              >
-                {suggesting ? "Reiche ein…" : "Interesse hinzufügen"}
-              </button>
-            </div>
-            {suggestMsg && (
-              <p
-                className={`text-xs ${
-                  suggestMsg.kind === "ok"
-                    ? "text-green-700"
-                    : suggestMsg.kind === "error"
-                      ? "text-red-700"
-                      : "text-gray-600"
-                }`}
-                role="status"
-              >
-                {suggestMsg.text}
-              </p>
-            )}
-            {openSuggestions.size > 0 && !suggestMsg && (
-              <p className="text-xs text-gray-500">
-                {openSuggestions.size} Vorschlag{openSuggestions.size === 1 ? "" : "e"} in Prüfung
-              </p>
-            )}
-          </form>
-
-          <button
-            onClick={handlePrimaryAction}
-            disabled={saving || redirecting || !dirty}
-            className="flex shrink-0 items-center justify-center gap-2 rounded bg-black px-5 py-2 font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {(saving || redirecting) && (
-              <svg
-                className="h-4 w-4 animate-spin"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-hidden
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
-                />
-              </svg>
-            )}
-            {saving
-              ? "Speichern…"
-              : redirecting
-                ? "Weiterleiten…"
-                : "Speichern"}
-          </button>
+        <div className="mt-8 space-y-8">
+          {categories.map((cat) => {
+            const items = visible(cat.id);
+            if (items.length === 0) return null;
+            const open = openCats.has(cat.id);
+            const selectedInCat = items.filter((i) =>
+              selected.has(i.id),
+            ).length;
+            return (
+              <section key={cat.id}>
+                <button
+                  type="button"
+                  onClick={() => toggleCat(cat.id)}
+                  aria-expanded={open}
+                  className="flex w-full items-baseline justify-between gap-4 border-b pb-2 text-left"
+                >
+                  <h2 className="font-semibold">{cat.name_de}</h2>
+                  <span className="text-sm text-muted-foreground">
+                    {selectedInCat > 0 && (
+                      <span className="mr-2">
+                        {selectedInCat} ausgewählt
+                      </span>
+                    )}
+                    {items.length} Interessen <span aria-hidden>{open ? "▲" : "▼"}</span>
+                  </span>
+                </button>
+                {open && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {items.map((interest) => {
+                      const active = selected.has(interest.id);
+                      return (
+                        <button
+                          key={interest.id}
+                          onClick={() => toggle(interest.id)}
+                          className={`rounded-full border px-3 py-1 text-sm transition ${
+                            active
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-input hover:border-muted-foreground"
+                          }`}
+                        >
+                          {interest.name_de}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+          {q !== "" && totalHits === 0 && (
+            <p className="rounded-lg border p-6 text-muted-foreground">
+              Keine Treffer für „{query.trim()}“ — tippe es anders oder wähle
+              direkt aus den Kategorien.
+            </p>
+          )}
         </div>
-      </div>
-    </main>
+
+        <div className="sticky bottom-4 mt-10 rounded-xl border bg-background/95 p-4 shadow-md backdrop-blur">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <form
+              onSubmit={handleSuggest}
+              className="flex min-w-0 flex-1 flex-col gap-2"
+              aria-label="Neues Interesse vorschlagen"
+            >
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <select
+                  value={suggestCat}
+                  onChange={(e) => setSuggestCat(e.target.value)}
+                  aria-label="Kategorie für den Vorschlag"
+                  className="rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30 sm:w-56"
+                >
+                  <option value="">Kategorie wählen…</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name_de}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={suggestName}
+                  onChange={(e) => setSuggestName(e.target.value)}
+                  maxLength={80}
+                  placeholder="Fehlt ein Interesse? Hier eintragen…"
+                  aria-label="Name des Interesses"
+                  className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30"
+                />
+                <Button
+                  type="submit"
+                  variant="outline"
+                  disabled={suggesting}
+                  className="shrink-0"
+                >
+                  {suggesting ? "Reiche ein…" : "Interesse hinzufügen"}
+                </Button>
+              </div>
+              {suggestMsg && (
+                <p
+                  className={`text-xs ${
+                    suggestMsg.kind === "ok"
+                      ? "text-green-700"
+                      : suggestMsg.kind === "error"
+                        ? "text-red-700"
+                        : "text-muted-foreground"
+                  }`}
+                  role="status"
+                >
+                  {suggestMsg.text}
+                </p>
+              )}
+              {openSuggestions.size > 0 && !suggestMsg && (
+                <p className="text-xs text-muted-foreground">
+                  {openSuggestions.size} Vorschlag{openSuggestions.size === 1 ? "" : "e"} in Prüfung
+                </p>
+              )}
+            </form>
+
+            <Button
+              onClick={handlePrimaryAction}
+              disabled={saving || redirecting || !dirty}
+              className="shrink-0"
+            >
+              {(saving || redirecting) && (
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
+                  />
+                </svg>
+              )}
+              {saving
+                ? "Speichern…"
+                : redirecting
+                  ? "Weiterleiten…"
+                  : "Speichern"}
+            </Button>
+          </div>
+        </div>
+      </main>
+    </Background>
   );
 }

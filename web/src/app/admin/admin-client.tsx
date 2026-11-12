@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import SiteNav from "@/app/components/SiteNav";
+import { Background } from "@/app/components/background";
+import { Button } from "@/app/components/ui/button";
 
 type Suggestion = {
   id: string;
@@ -114,107 +116,108 @@ export default function AdminClient() {
   const decided = suggestions.filter((s) => s.status !== "pending");
 
   return (
-    <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
-      <SiteNav />
-      <h1 className="text-2xl font-bold">Vorschläge prüfen</h1>
-      <p className="mt-2 text-sm text-gray-600">
-        Genehmigte Interessen fließen in den Katalog und stehen danach allen
-        Nutzern zur Auswahl. Die Kategorie lässt sich vor dem Genehmigen
-        korrigieren. Offen: {pending.length}
-      </p>
+    <Background>
+      <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
+        <SiteNav />
+        <h1 className="text-2xl font-bold tracking-tight">Vorschläge prüfen</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Genehmigte Interessen fließen in den Katalog und stehen danach allen
+          Nutzern zur Auswahl. Die Kategorie lässt sich vor dem Genehmigen
+          korrigieren. Offen: {pending.length}
+        </p>
 
-      {error && (
-        <p className="mt-4 rounded bg-red-50 p-3 text-red-700">{error}</p>
-      )}
+        {error && (
+          <p className="mt-4 rounded bg-red-50 p-3 text-red-700">{error}</p>
+        )}
 
-      {loading ? (
-        <p className="mt-8 text-gray-600">Lade…</p>
-      ) : (
-        <>
-          <section className="mt-8" aria-label="Offene Vorschläge">
-            <h2 className="border-b pb-2 font-semibold">Offene Vorschläge</h2>
-            {pending.length === 0 && (
-              <p className="mt-4 text-gray-600">
-                Keine offenen Vorschläge — alles geprüft.
-              </p>
-            )}
-            <ul className="mt-4 space-y-3">
-              {pending.map((s) => (
-                <li
-                  key={s.id}
-                  className="flex flex-col gap-3 rounded border p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium">{s.name_de}</p>
-                    <p className="text-sm text-gray-500">
-                      von {s.suggester?.display_name ?? "unbekannt"} ·{" "}
-                      {formatDate(s.created_at)}
-                    </p>
-                    <select
-                      value={s.category?.id ?? ""}
-                      onChange={(e) => changeCategory(s.id, e.target.value)}
-                      disabled={busyId === s.id}
-                      aria-label={`Kategorie für „${s.name_de}"`}
-                      className="mt-2 rounded border border-gray-300 bg-white px-2 py-1 text-sm outline-none focus:border-black"
-                    >
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name_de}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex shrink-0 gap-2">
-                    <button
-                      onClick={() => decide(s.id, "approve")}
-                      disabled={busyId === s.id}
-                      className="rounded bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-                    >
-                      Genehmigen
-                    </button>
-                    <button
-                      onClick={() => decide(s.id, "reject")}
-                      disabled={busyId === s.id}
-                      className="rounded border border-gray-300 px-4 py-2 text-sm hover:border-gray-500 disabled:opacity-50"
-                    >
-                      Ablehnen
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          {decided.length > 0 && (
-            <section className="mt-12" aria-label="Entschiedene Vorschläge">
-              <h2 className="border-b pb-2 font-semibold">Bereits entschieden</h2>
-              <ul className="mt-4 space-y-2">
-                {decided.map((s) => (
+        {loading ? (
+          <p className="mt-8 text-muted-foreground">Lade…</p>
+        ) : (
+          <>
+            <section className="mt-8" aria-label="Offene Vorschläge">
+              <h2 className="border-b pb-2 font-semibold">Offene Vorschläge</h2>
+              {pending.length === 0 && (
+                <p className="mt-4 text-muted-foreground">
+                  Keine offenen Vorschläge — alles geprüft.
+                </p>
+              )}
+              <ul className="mt-4 space-y-3">
+                {pending.map((s) => (
                   <li
                     key={s.id}
-                    className="flex flex-wrap items-center gap-2 text-sm text-gray-600"
+                    className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs ${
-                        s.status === "approved"
-                          ? "bg-green-50 text-green-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {s.status === "approved" ? "genehmigt" : "abgelehnt"}
-                    </span>
-                    <span className="font-medium text-gray-900">{s.name_de}</span>
-                    <span>
-                      {s.category?.name_de ?? "—"} ·{" "}
-                      {s.decided_at ? formatDate(s.decided_at) : ""}
-                    </span>
+                    <div className="min-w-0">
+                      <p className="font-medium">{s.name_de}</p>
+                      <p className="text-sm text-muted-foreground">
+                        von {s.suggester?.display_name ?? "unbekannt"} ·{" "}
+                        {formatDate(s.created_at)}
+                      </p>
+                      <select
+                        value={s.category?.id ?? ""}
+                        onChange={(e) => changeCategory(s.id, e.target.value)}
+                        disabled={busyId === s.id}
+                        aria-label={`Kategorie für „${s.name_de}"`}
+                        className="mt-2 rounded-md border border-input bg-background px-2 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/30"
+                      >
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name_de}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex shrink-0 gap-2">
+                      <Button
+                        onClick={() => decide(s.id, "approve")}
+                        disabled={busyId === s.id}
+                      >
+                        Genehmigen
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => decide(s.id, "reject")}
+                        disabled={busyId === s.id}
+                      >
+                        Ablehnen
+                      </Button>
+                    </div>
                   </li>
                 ))}
               </ul>
             </section>
-          )}
-        </>
-      )}
-    </main>
+
+            {decided.length > 0 && (
+              <section className="mt-12" aria-label="Entschiedene Vorschläge">
+                <h2 className="border-b pb-2 font-semibold">Bereits entschieden</h2>
+                <ul className="mt-4 space-y-2">
+                  {decided.map((s) => (
+                    <li
+                      key={s.id}
+                      className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
+                    >
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs ${
+                          s.status === "approved"
+                            ? "bg-green-50 text-green-700"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {s.status === "approved" ? "genehmigt" : "abgelehnt"}
+                      </span>
+                      <span className="font-medium text-foreground">{s.name_de}</span>
+                      <span>
+                        {s.category?.name_de ?? "—"} ·{" "}
+                        {s.decided_at ? formatDate(s.decided_at) : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
+        )}
+      </main>
+    </Background>
   );
 }

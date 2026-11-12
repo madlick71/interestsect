@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import MapPageClient from "./map-page-client";
 import SiteNav from "@/app/components/SiteNav";
+import { Background } from "@/app/components/background";
 import type { MapMatch } from "./matches-map";
 import { resolveAvatarUrl, signAvatarUrls } from "@/lib/avatars";
 
@@ -36,13 +37,15 @@ export default async function MapPage({
 
   if (error) {
     return (
-      <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
-        <SiteNav />
-        <h1 className="text-2xl font-bold">Treffer-Karte</h1>
-        <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">
-          {error.message}
-        </p>
-      </main>
+      <Background>
+        <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
+          <SiteNav />
+          <h1 className="text-2xl font-bold tracking-tight">Treffer-Karte</h1>
+          <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">
+            {error.message}
+          </p>
+        </main>
+      </Background>
     );
   }
 
@@ -94,20 +97,22 @@ export default async function MapPage({
   }
 
   return (
-    <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
-      <SiteNav />
-      <div className="mb-4 flex items-baseline justify-between gap-4">
-        <h1 className="text-2xl font-bold">Treffer-Karte</h1>
-        <span className="text-sm text-gray-500">
-          {locatedCount} von {allMatches.length} Treffern mit Ort
-        </span>
-      </div>
-      <MapPageClient
-        matches={signedMatches}
-        initialView={initialView}
-        ownLocation={ownLocation}
-        emptyHint={emptyHint}
-      />
-    </main>
+    <Background>
+      <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
+        <SiteNav />
+        <div className="mb-4 flex items-baseline justify-between gap-4">
+          <h1 className="text-2xl font-bold tracking-tight">Treffer-Karte</h1>
+          <span className="text-sm text-muted-foreground">
+            {locatedCount} von {allMatches.length} Treffern mit Ort
+          </span>
+        </div>
+        <MapPageClient
+          matches={signedMatches}
+          initialView={initialView}
+          ownLocation={ownLocation}
+          emptyHint={emptyHint}
+        />
+      </main>
+    </Background>
   );
 }

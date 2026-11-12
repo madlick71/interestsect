@@ -243,7 +243,7 @@ export default function LocationInput({
         <ul
           id="location-suggestions"
           role="listbox"
-          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded border border-gray-300 bg-white shadow-lg"
+          className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-md border border-border bg-popover shadow-lg"
         >
           {suggestions.map((s, i) => (
             <li
@@ -253,8 +253,8 @@ export default function LocationInput({
               aria-selected={i === activeIndex}
               className={`cursor-pointer px-4 py-2.5 text-sm transition-colors ${
                 i === activeIndex
-                  ? "bg-gray-100 text-gray-900"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent"
               }`}
               onMouseDown={(e) => {
                 // onMouseDown instead of onClick so it fires before input blur

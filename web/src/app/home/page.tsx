@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import MyInterests from "./my-interests";
 import SiteNav from "@/app/components/SiteNav";
 import Avatar from "@/app/components/Avatar";
+import { Background } from "@/app/components/background";
 import { resolveAvatarUrl, signAvatarUrls } from "@/lib/avatars";
 
 type Match = {
@@ -58,7 +59,7 @@ async function HomeList() {
     return (
       <div>
         <MyInterests interests={myInterests} />
-        <div className="mt-8 rounded border p-6 text-gray-600">
+        <div className="mt-8 rounded-lg border p-6 text-muted-foreground">
           Noch keine Treffer. Wähle mehr Interessen — je spezifischer, desto
           besser.{" "}
           <Link href="/interests" className="underline">
@@ -85,11 +86,11 @@ async function HomeList() {
               <div>
                 <h2 className="font-semibold">{m.display_name}</h2>
                 {m.region && (
-                  <p className="mt-0.5 text-sm text-gray-500">{m.region}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{m.region}</p>
                 )}
               </div>
             </div>
-            <span className="shrink-0 pt-1 text-sm text-gray-500">
+            <span className="shrink-0 pt-1 text-sm text-muted-foreground">
               {m.common_interests} gemeinsame Interessen
             </span>
           </div>
@@ -98,7 +99,7 @@ async function HomeList() {
             {m.shared_interests.slice(0, 6).map((name) => (
               <span
                 key={name}
-                className="rounded-full bg-gray-100 px-3 py-1 text-xs"
+                className="rounded-full bg-muted px-3 py-1 text-xs"
               >
                 {name}
               </span>
@@ -113,20 +114,22 @@ async function HomeList() {
 
 export default function HomePage() {
   return (
-    <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
-      <SiteNav />
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold">Deine Treffer</h1>
-      </div>
-      <p className="mt-2 text-sm text-gray-600">
-        Menschen mit mindestens 2 gemeinsamen Interessen.{" "}
-        <Link href="/map" className="underline hover:text-gray-800">
-          Treffer auf der Karte ansehen
-        </Link>
-      </p>
-      <Suspense fallback={<p className="mt-8 text-gray-500">Lade Treffer…</p>}>
-        <HomeList />
-      </Suspense>
-    </main>
+    <Background>
+      <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
+        <SiteNav />
+        <div className="flex items-baseline justify-between">
+          <h1 className="text-2xl font-bold tracking-tight">Deine Treffer</h1>
+        </div>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Menschen mit mindestens 2 gemeinsamen Interessen.{" "}
+          <Link href="/map" className="underline hover:text-foreground">
+            Treffer auf der Karte ansehen
+          </Link>
+        </p>
+        <Suspense fallback={<p className="mt-8 text-muted-foreground">Lade Treffer…</p>}>
+          <HomeList />
+        </Suspense>
+      </main>
+    </Background>
   );
 }

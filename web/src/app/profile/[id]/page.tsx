@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SiteNav from "@/app/components/SiteNav";
 import Avatar from "@/app/components/Avatar";
+import { Background } from "@/app/components/background";
 import { resolveAvatarUrl, signAvatarUrls } from "@/lib/avatars";
 
 // UUID-Format der auth.users-IDs — alles andere ist keine Profil-ID.
@@ -46,58 +47,60 @@ export default async function UserProfilePage({
   const sharedInterests = match?.shared_interests ?? [];
 
   return (
-    <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
-      <SiteNav />
-      <div className="mb-4 flex items-baseline justify-between gap-4">
-        <h1 className="text-2xl font-bold">Profil</h1>
-        <Link
-          href="/map"
-          className="text-sm text-gray-500 underline hover:text-gray-800"
-        >
-          Zurück zur Karte
-        </Link>
-      </div>
-
-      <article className="rounded-lg border p-5">
-        <div className="flex items-center gap-4">
-          <Avatar
-            url={resolveAvatarUrl(avatarUrls, profile.avatar_url)}
-            name={profile.display_name}
-            size={64}
-          />
-          <div>
-            <h2 className="text-lg font-semibold">{profile.display_name}</h2>
-            {profile.region && (
-              <p className="mt-0.5 text-sm text-gray-500">{profile.region}</p>
-            )}
-          </div>
+    <Background>
+      <main className="mx-auto w-full px-4 py-12 md:w-[70%]">
+        <SiteNav />
+        <div className="mb-4 flex items-baseline justify-between gap-4">
+          <h1 className="text-2xl font-bold tracking-tight">Profil</h1>
+          <Link
+            href="/map"
+            className="text-sm text-muted-foreground underline hover:text-foreground"
+          >
+            Zurück zur Karte
+          </Link>
         </div>
 
-        {profile.bio && <p className="mt-3 text-sm">{profile.bio}</p>}
-
-        {match ? (
-          <>
-            <p className="mt-4 text-sm font-semibold">
-              {match.common_interests} gemeinsame{" "}
-              Interesse{match.common_interests === 1 ? "" : "n"} mit dir
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {sharedInterests.map((name) => (
-                <span
-                  key={name}
-                  className="rounded-full bg-gray-100 px-3 py-1 text-xs"
-                >
-                  {name}
-                </span>
-              ))}
+        <article className="rounded-lg border p-5">
+          <div className="flex items-center gap-4">
+            <Avatar
+              url={resolveAvatarUrl(avatarUrls, profile.avatar_url)}
+              name={profile.display_name}
+              size={64}
+            />
+            <div>
+              <h2 className="text-lg font-semibold">{profile.display_name}</h2>
+              {profile.region && (
+                <p className="mt-0.5 text-sm text-muted-foreground">{profile.region}</p>
+              )}
             </div>
-          </>
-        ) : (
-          <p className="mt-4 text-sm text-gray-500">
-            Aktuell keine gemeinsamen Interessen (mindestens 2) mit dir.
-          </p>
-        )}
-      </article>
-    </main>
+          </div>
+
+          {profile.bio && <p className="mt-3 text-sm">{profile.bio}</p>}
+
+          {match ? (
+            <>
+              <p className="mt-4 text-sm font-semibold">
+                {match.common_interests} gemeinsame{" "}
+                Interesse{match.common_interests === 1 ? "" : "n"} mit dir
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {sharedInterests.map((name) => (
+                  <span
+                    key={name}
+                    className="rounded-full bg-muted px-3 py-1 text-xs"
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="mt-4 text-sm text-muted-foreground">
+              Aktuell keine gemeinsamen Interessen (mindestens 2) mit dir.
+            </p>
+          )}
+        </article>
+      </main>
+    </Background>
   );
 }
